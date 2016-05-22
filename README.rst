@@ -40,5 +40,3 @@ Features
 :Copyright: 2016 Michael Lenzen
 :License: MIT
 :GitHub: https://github.com/mlenzen/Flask-LenzM-Utils
-:Documentation: http://Flask-LenzM-Utils.lenzm.net
-:PyPI: https://pypi.python.org/pypi/Flask-LenzM-Utils
