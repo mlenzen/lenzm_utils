@@ -7,13 +7,14 @@ import subprocess
 
 import click
 from flask import current_app
+from flask.cli import FlaskGroup
 
 DEFAULT_DB_BACKUP_PATH = 'db.pg_dump'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-cli = click.Group(help=__doc__, name='pg')
+cli = FlaskGroup(help=__doc__, name='pg')
 
 
 @cli.command()
@@ -23,7 +24,7 @@ def dump(location, format):
 	'''Run pg_dump.'''
 	os.environ['PGPASSWORD'] = current_app.config['PG_PASSWORD']
 	# /usr/pgsql-9.3/bin/pg_dump -Fd analytics -f analytics-dump --username=analytics
-	pg_dump = current_app.config['PG_BIN_DIR'] + 'pg_dump'
+	pg_dump = current_app.config.get('PG_BIN_DIR', '') + 'pg_dump'
 	subprocess.call((
 		pg_dump,
 		'--host={}'.format(current_app.config['PG_HOST']),
@@ -40,7 +41,7 @@ def restore(location):
 	'''Restore pg_dump.'''
 	os.environ['PGPASSWORD'] = current_app.config['PG_PASSWORD']
 	# pg_restore -h localhost -U analytics -d analytics --clean db-backup/
-	pg_restore = current_app.config['PG_BIN_DIR'] + 'pg_restore'
+	pg_restore = current_app.get('PG_BIN_DIR', '') + 'pg_restore'
 	subprocess.call((
 		pg_restore,
 		'--host={}'.format(current_app.config['PG_HOST']),
