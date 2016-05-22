@@ -3,6 +3,7 @@
 import logging
 
 from flask import current_app
+from flask.cli import FlaskGroup
 import click
 
 from . import migrate, pg
@@ -10,7 +11,7 @@ from . import migrate, pg
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-cli = click.Group(name='db', help='Database Administration')
+cli = FlaskGroup(name='db', help='Database Administration')
 cli.add_command(migrate.cli)
 cli.add_command(pg.cli)
 
