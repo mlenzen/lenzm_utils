@@ -37,21 +37,22 @@ HELP = {
 
 
 class _MigrateConfig(object):
-	def __init__(self, directory, **kwargs):
+	def __init__(self, directory, db, **kwargs):
 		self.directory = directory
+		self.db = db
 		self.configure_args = kwargs
 
 
 class Migrate(object):
 	"""Flask extension for alembic migrations."""
-	def __init__(self, app=None, directory=DEFAULT_DIR, **kwargs):
+	def __init__(self, app=None, db=None, directory=DEFAULT_DIR, **kwargs):
 		if app is not None:
-			self.init_app(app, directory, **kwargs)
+			self.init_app(app, db, directory, **kwargs)
 
-	def init_app(self, app, directory=DEFAULT_DIR, **kwargs):
+	def init_app(self, app, db=None, directory=DEFAULT_DIR, **kwargs):
 		if not hasattr(app, 'extensions'):
 			app.extensions = {}
-		app.extensions[EXT_NAME] = _MigrateConfig(directory, **kwargs)
+		app.extensions[EXT_NAME] = _MigrateConfig(directory, db, **kwargs)
 
 
 class Config(alembic.config.Config):
