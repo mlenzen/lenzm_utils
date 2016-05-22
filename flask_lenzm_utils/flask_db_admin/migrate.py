@@ -6,6 +6,7 @@ import logging
 import os
 
 from flask import current_app
+from flask.cli import FlaskGroup
 import click
 import alembic
 import alembic.config
@@ -72,7 +73,7 @@ def _get_config(x_arg=None):
 	return config
 
 
-cli = click.Group(help=__doc__, name='migrate')
+cli = FlaskGroup(help=__doc__, name='migrate')
 
 
 @cli.command()
