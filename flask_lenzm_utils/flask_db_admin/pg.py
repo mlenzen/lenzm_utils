@@ -18,7 +18,8 @@ cli = click.Group(help=__doc__, name='pg')
 
 @cli.command()
 @click.option('-l', '--location', default=DEFAULT_DB_BACKUP_PATH)
-def backup(location):
+@click.option('--format', default='c')
+def dump(location, format):
 	'''Run pg_dump.'''
 	os.environ['PGPASSWORD'] = current_app.config['PG_PASSWORD']
 	# /usr/pgsql-9.3/bin/pg_dump -Fd analytics -f analytics-dump --username=analytics
@@ -27,7 +28,7 @@ def backup(location):
 		pg_dump,
 		'--host={}'.format(current_app.config['PG_HOST']),
 		'--username={}'.format(current_app.config['PG_USERNAME']),
-		'--format=c',
+		'--format=%s' % format,
 		current_app.config['PG_DB_NAME'],
 		'--file=%s' % location,
 		))
