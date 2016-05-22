@@ -1,0 +1,10 @@
+-r package.txt
+-r docs.txt
+
+bumpversion
+coverage
+coveralls
+flake8
+ipython
+pytest
+wheel>=0.23.0
