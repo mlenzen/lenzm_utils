@@ -48,7 +48,7 @@ class BaseMixin():
 			return cls.find_one(**kwargs)
 		except NoResultFound:
 			obj = cls(**kwargs)
-			db.session.add(obj)
+			cls.query.session.add(obj)
 			return obj
 
 	@classmethod
