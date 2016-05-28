@@ -83,6 +83,42 @@ class BaseMixin():
 		"""Return a ForeignKeyConstraint for the primary keys of this model."""
 		raise NotImplementedError
 
+	@classmethod
+	def import_csv(cls, path, io_wrapper=None):
+		"""Import data from a csv file."""
+		logger.info('Importing %s to %s', path, cls)
+		with open(path, 'r', newline='') as infile:
+			cls.import_from_file(infile, io_wrapper=io_wrapper)
+
+	@classmethod
+	def export_csv(cls, path, io_wrapper=None):
+		"""Export data to csv file."""
+		logger.info('Exporting %s to %s', cls, path)
+		with open(path, 'r', newline='') as infile:
+			cls.import_from_file(infile, io_wrapper=io_wrapper)
+
+	@classmethod
+	def import_from_file(cls, infile, io_wrapper=None):
+		logger.info('Importing to %s', cls)
+		if io_wrapper:
+			infile = io_wrapper(infile)
+		reader = csv.DictReader(infile)
+		# TODO try insert many (not on session)
+		# http://stackoverflow.com/questions/25694234/bulk-update-in-sqlalchemy-core-using-where
+		# db.session.bulk_insert_mappings(cls, reader)
+		rows = list(reader)
+		db.engine.execute(cls.__table__.insert(), rows)
+
+	@classmethod
+	def export_to_file(cls, outfile, io_wrapper=None):
+		logger.info('Exporting %s', cls)
+		if io_wrapper:
+			outfile = io_wrapper(outfile)
+		writer = csv.DictWriter(outfile, cls.__table__.columns)
+		writer.writeheader()
+		for obj in cls.query:
+			writer.writerow(obj)
+
 
 class IntegerPKey():
 
