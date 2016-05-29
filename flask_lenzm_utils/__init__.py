@@ -8,6 +8,10 @@ Utils for Flask Projects
 :copyright: (c) 2016 by Michael Lenzen
 :licence: MIT, see LICENCE for more details
 """
+import csv
+import logging
+import os.path
+
 from flask import abort
 from sqlalchemy import (
 	Column,
@@ -18,6 +22,8 @@ from sqlalchemy import (
 from sqlalchemy.orm.exc import NoResultFound
 
 from . import flask_db_admin, url_for_obj, url_update
+
+logger = logging.getLogger(__name__)
 
 
 def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
@@ -84,18 +90,32 @@ class BaseMixin():
 		raise NotImplementedError
 
 	@classmethod
-	def import_csv(cls, path, io_wrapper=None):
+	def import_csv(cls, path=None, directory=None, io_wrapper=None):
 		"""Import data from a csv file."""
+		if path is None:
+			path = '%s.csv' % cls.__tablename__
+			if directory:
+				path = os.path.join(directory, path)
 		logger.info('Importing %s to %s', path, cls)
 		with open(path, 'r', newline='') as infile:
 			cls.import_from_file(infile, io_wrapper=io_wrapper)
 
 	@classmethod
-	def export_csv(cls, path, io_wrapper=None):
+	def export_csv(cls, path=None, directory=None, io_wrapper=None):
 		"""Export data to csv file."""
+		if path is None:
+			path = '%s.csv' % cls.__tablename__
+			if directory:
+				path = os.path.join(directory, path)
 		logger.info('Exporting %s to %s', cls, path)
-		with open(path, 'r', newline='') as infile:
-			cls.import_from_file(infile, io_wrapper=io_wrapper)
+		try:
+			with open(path, 'r', newline='') as infile:
+				reader = csv.DictReader(infile)
+				fieldnames = reader.fieldnames
+		except IOError:
+			fieldnames = None
+		with open(path, 'w', newline='') as outfile:
+			cls.export_to_file(outfile, fieldnames=fieldnames, io_wrapper=io_wrapper)
 
 	@classmethod
 	def import_from_file(cls, infile, io_wrapper=None):
@@ -110,14 +130,18 @@ class BaseMixin():
 		db.engine.execute(cls.__table__.insert(), rows)
 
 	@classmethod
-	def export_to_file(cls, outfile, io_wrapper=None):
+	def export_to_file(cls, outfile, fieldnames=None, io_wrapper=None):
 		logger.info('Exporting %s', cls)
 		if io_wrapper:
 			outfile = io_wrapper(outfile)
-		writer = csv.DictWriter(outfile, cls.__table__.columns)
+		fieldnames = fieldnames or []
+		for col in cls.__table__.columns:
+			if col.name not in fieldnames:
+				fieldnames.append(col.name)
+		writer = csv.DictWriter(outfile, fieldnames, extrasaction='ignore')
 		writer.writeheader()
 		for obj in cls.query:
-			writer.writerow(obj)
+			writer.writerow(obj.__dict__)
 
 
 class IntegerPKey():
