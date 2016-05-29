@@ -11,7 +11,7 @@ from . import migrate, pg
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-cli = FlaskGroup(name='db', help='Database Administration')
+cli = FlaskGroup(name='db', help='Database Administration', add_default_commands=False)
 cli.add_command(migrate.cli)
 cli.add_command(pg.cli)
 
