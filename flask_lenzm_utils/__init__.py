@@ -80,6 +80,11 @@ class BaseMixin():
 		return class_template.format(obj=self)
 
 	@classmethod
+	def query_default_order(cls):
+		"""Return a class query with a default order."""
+		raise NotImplementedError
+
+	@classmethod
 	def pkey(cls, **kwargs):
 		"""Return a column definition for the primary key of this model."""
 		raise NotImplementedError
@@ -90,12 +95,31 @@ class BaseMixin():
 		raise NotImplementedError
 
 	@classmethod
-	def import_csv(cls, path=None, directory=None, io_wrapper=None):
-		"""Import data from a csv file."""
+	def _get_path(cls, path, directory):
 		if path is None:
 			path = '%s.csv' % cls.__tablename__
 			if directory:
 				path = os.path.join(directory, path)
+		else:
+			if directory:
+				raise ValueError('Must not pass path and directory')
+		return path
+
+	@classmethod
+	def merge_csv(cls, path=None, directory=None, io_wrapper=None):
+		"""Load data from a csv file and merge into db.
+
+		This is slower than import because orm objects are created.
+		"""
+		path = cls._get_path(path, directory)
+		logger.info('Importing %s to %s', path, cls)
+		with open(path, 'r', newline='') as infile:
+			cls.merge_from_file(infile, io_wrapper=io_wrapper)
+
+	@classmethod
+	def import_csv(cls, path=None, directory=None, io_wrapper=None):
+		"""Import data from a csv file."""
+		path = cls._get_path(path, directory)
 		logger.info('Importing %s to %s', path, cls)
 		with open(path, 'r', newline='') as infile:
 			cls.import_from_file(infile, io_wrapper=io_wrapper)
@@ -103,10 +127,7 @@ class BaseMixin():
 	@classmethod
 	def export_csv(cls, path=None, directory=None, io_wrapper=None):
 		"""Export data to csv file."""
-		if path is None:
-			path = '%s.csv' % cls.__tablename__
-			if directory:
-				path = os.path.join(directory, path)
+		path = cls._get_path(path, directory)
 		logger.info('Exporting %s to %s', cls, path)
 		try:
 			with open(path, 'r', newline='') as infile:
@@ -130,6 +151,16 @@ class BaseMixin():
 		db.engine.execute(cls.__table__.insert(), rows)
 
 	@classmethod
+	def merge_from_file(cls, infile, io_wrapper=None):
+		logger.info('Merging to %s', cls)
+		if io_wrapper:
+			infile = io_wrapper(infile)
+		reader = csv.DictReader(infile)
+		for row in reader:
+			obj = cls(**row)
+			cls.query.session.merge(obj)
+
+	@classmethod
 	def export_to_file(cls, outfile, fieldnames=None, io_wrapper=None):
 		logger.info('Exporting %s', cls)
 		if io_wrapper:
@@ -140,7 +171,11 @@ class BaseMixin():
 				fieldnames.append(col.name)
 		writer = csv.DictWriter(outfile, fieldnames, extrasaction='ignore')
 		writer.writeheader()
-		for obj in cls.query:
+		try:
+			query = cls.query_default_order()
+		except NotImplementedError:
+			query = cls.query
+		for obj in query:
 			writer.writerow(obj.__dict__)
 
 
@@ -151,3 +186,7 @@ class IntegerPKey():
 	@classmethod
 	def pkey(cls, **kwargs):
 		return parent_key(cls.id, Integer, **kwargs)
+
+	@classmethod
+	def query_default_order(cls):
+		return cls.query.order_by(cls.id)
