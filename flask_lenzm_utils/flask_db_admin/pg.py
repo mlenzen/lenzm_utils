@@ -41,7 +41,7 @@ def restore(location):
 	'''Restore pg_dump.'''
 	os.environ['PGPASSWORD'] = current_app.config['PG_PASSWORD']
 	# pg_restore -h localhost -U analytics -d analytics --clean db-backup/
-	pg_restore = current_app.get('PG_BIN_DIR', '') + 'pg_restore'
+	pg_restore = current_app.config.get('PG_BIN_DIR', '') + 'pg_restore'
 	subprocess.call((
 		pg_restore,
 		'--host={}'.format(current_app.config['PG_HOST']),
