@@ -33,7 +33,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
 	name='Flask-LenzM-Utils',
-	version='0.0.1',
+	version='0.0.2',
 	description='Utils for Flask Projects',
 	long_description=long_description,
 	keywords='Flask-LenzM-Utils development',
@@ -49,6 +49,11 @@ setup(
 	},
 	install_requires=[
 		'setuptools',
+		'Flask>=0.11',
+		'SQLAlchemy',
+		'Flask-SQLAlchemy',
+		'alembic',
+		'click',
 	],
 	tests_require=[
 		'pytest',
