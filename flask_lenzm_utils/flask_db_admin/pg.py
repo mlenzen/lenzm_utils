@@ -7,14 +7,14 @@ import subprocess
 
 import click
 from flask import current_app
-from flask.cli import FlaskGroup
+from flask.cli import AppGroup
 
 DEFAULT_DB_BACKUP_PATH = 'db.pg_dump'
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-cli = FlaskGroup(help=__doc__, name='pg')
+cli = AppGroup(help=__doc__, name='pg')
 
 
 @cli.command()
