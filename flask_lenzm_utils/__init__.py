@@ -13,6 +13,7 @@ import logging
 import os.path
 
 from flask import abort
+import flask_sqlalchemy
 from sqlalchemy import (
 	Column,
 	Integer,
@@ -24,6 +25,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from . import flask_db_admin, url_for_obj, url_update
 
 logger = logging.getLogger(__name__)
+db = flask_sqlalchemy.SQLAlchemy()
 
 
 def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
