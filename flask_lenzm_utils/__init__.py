@@ -92,7 +92,7 @@ class BaseMixin():
 		raise NotImplementedError
 
 	@classmethod
-	def fkey_constraint(cls, sport_abbr, team_abbr):
+	def fkey_constraint(cls, *args):
 		"""Return a ForeignKeyConstraint for the primary keys of this model."""
 		raise NotImplementedError
 
