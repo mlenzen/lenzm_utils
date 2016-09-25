@@ -21,9 +21,8 @@ cli = AppGroup(help=__doc__, name='pg')
 @click.option('-l', '--location', default=DEFAULT_DB_BACKUP_PATH)
 @click.option('--format', default='c')
 def dump(location, format):
-	'''Run pg_dump.'''
+	"""Run pg_dump."""
 	os.environ['PGPASSWORD'] = current_app.config['PG_PASSWORD']
-	# /usr/pgsql-9.3/bin/pg_dump -Fd analytics -f analytics-dump --username=analytics
 	pg_dump = current_app.config.get('PG_BIN_DIR', '') + 'pg_dump'
 	subprocess.call((
 		pg_dump,
@@ -38,9 +37,8 @@ def dump(location, format):
 @cli.command()
 @click.option('-l', '--location', default=DEFAULT_DB_BACKUP_PATH)
 def restore(location):
-	'''Restore pg_dump.'''
+	"""Restore pg_dump."""
 	os.environ['PGPASSWORD'] = current_app.config['PG_PASSWORD']
-	# pg_restore -h localhost -U analytics -d analytics --clean db-backup/
 	pg_restore = current_app.config.get('PG_BIN_DIR', '') + 'pg_restore'
 	subprocess.call((
 		pg_restore,

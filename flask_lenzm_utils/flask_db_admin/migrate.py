@@ -1,7 +1,7 @@
-'''Perform database migrations using Alembic.
+"""Perform database migrations using Alembic.
 
 This is a click wrapper around the alembic library.
-'''
+"""
 import logging
 import os
 
@@ -89,14 +89,27 @@ def init():
 
 @cli.command()
 @click.option('-m', '--message', help=HELP['message'])
-@click.option('--autogenerate/--no-autogenerate', default=True, help=HELP['autogenerate'])
+@click.option(
+	'--autogenerate/--no-autogenerate',
+	default=True,
+	help=HELP['autogenerate'],
+	)
 @click.option('--sql', is_flag=True, help=HELP['sql'])
 @click.option('--head', default='head', help=HELP['head'])
 @click.option('--splice', is_flag=True, help=HELP['splice'])
 @click.option('--branch-label', help=HELP['branch-label'])
 @click.option('--version-path', help=HELP['version-path'])
 @click.option('--rev-id', help=HELP['rev-id'])
-def revision(message, autogenerate, sql, head, splice, branch_label, version_path, rev_id):
+def revision(
+	message,
+	autogenerate,
+	sql,
+	head,
+	splice,
+	branch_label,
+	version_path,
+	rev_id,
+	):
 	"""Create a new revision file."""
 	config = _get_config()
 	alembic.command.revision(
@@ -180,7 +193,11 @@ def history(rev_range, verbose):
 
 
 @cli.command()
-@click.option('--resolve-dependencies', is_flag=True, help=HELP['resolve-dependencies'])
+@click.option(
+	'--resolve-dependencies',
+	is_flag=True,
+	help=HELP['resolve-dependencies'],
+	)
 @click.option('-v', '--verbose', is_flag=True, help=HELP['verbose'])
 def heads(verbose, resolve_dependencies):
 	"""Show current available heads in the script directory"""

@@ -25,7 +25,7 @@ clean:
 	find . -name __pycache__ -delete
 
 lint:
-	flake8 Flask_LenzM_Utils tests
+	flake8 flask_lenzm_utils
 
 coverage:
 	coverage run --source Flask_LenzM_Utils setup.py test

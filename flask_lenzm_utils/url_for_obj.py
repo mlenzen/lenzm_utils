@@ -1,7 +1,7 @@
-''' This module provides a function `url_for_obj` to get
+"""This module provides a function `url_for_obj` to get
 the correct URL for a given object. Classes are registered to endpoints to
-handle objects of that type using a decorator. Parameters for the view are taken
-from attributes of the object or mapped in the decorator.
+handle objects of that type using a decorator. Parameters for the view are
+taken from attributes of the object or mapped in the decorator.
 
 Let's say you have a class:
 
@@ -33,7 +33,8 @@ generate the parameters from the object.
 def employee(dept, employee_name):
 	...
 
-Add the url_for_obj function to the template context so you can use it in templates.
+Add the url_for_obj function to the template context so you can use it in
+templates.
 Where your blueprint is defined:
 
 @blueprint.context_processor
@@ -42,7 +43,7 @@ def context_processor():
 		'url_for_obj': url_for_obj.url_for_obj,
 		}
 
-'''
+"""
 
 # TODO make this an extension
 #	add url_for_obj to context in extension init_app
@@ -73,9 +74,9 @@ def url_for_obj(obj):
 
 
 def register(class_, get_funcs={}):
-	''' A decorator to register a function as the way to display an object of
+	""" A decorator to register a function as the way to display an object of
 	class_
-	'''
+	"""
 	def decorator(func):
 		class_function_mapping[class_] = (func, get_funcs)
 		return func

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Flask_LenzM_Utils
 ~~~~~~~~~~~~~~~~~~~
@@ -17,12 +16,11 @@ import flask_sqlalchemy
 from sqlalchemy import (
 	Column,
 	Integer,
-	String,
 	ForeignKey,
 	)
 from sqlalchemy.orm.exc import NoResultFound
 
-from . import flask_db_admin, url_for_obj, url_update
+from . import flask_db_admin, url_for_obj, url_update  # noqa
 
 logger = logging.getLogger(__name__)
 db = flask_sqlalchemy.SQLAlchemy()
