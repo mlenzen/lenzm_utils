@@ -7,3 +7,5 @@ from . import (
 	parse_string,
 	other,
 	)
+
+__version__ = '0.0.2'
