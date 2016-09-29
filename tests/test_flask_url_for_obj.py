@@ -45,6 +45,7 @@ def test_simple():
 	employee = Employee(id=1)
 	with app.app_context():
 		# have to do this in a blueprint context for now
+		# TODO this doesn't work - the code in the view doesn't get executed
 		@blueprint.route('/testing')
 		def test_view():
 			assert url_for_obj.url_for_obj(employee) == flask.url_for('blueprint.employee_view', id=1)
@@ -54,6 +55,7 @@ def test_mapped():
 	manager = Manager(first_name='M', last_name='Lenzen')
 	with app.app_context():
 		# have to do this in a blueprint context for now
+		# TODO this doesn't work - the code in the view doesn't get executed
 		@blueprint.route('/testing')
 		def test_view():
 			assert url_for_obj.url_for_obj(manager) == flask.url_for('blueprint.manager_view', full_name='M_Lenzen')
