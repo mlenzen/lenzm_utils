@@ -51,6 +51,7 @@ setup(
 		'Flask-SQLAlchemy',
 		'alembic',
 		'click',
+		'collections_extended',
 		],
 	tests_require=[
 		'pytest',

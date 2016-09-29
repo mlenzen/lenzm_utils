@@ -1,9 +1,12 @@
 """date utils"""
+import bisect
 import calendar
 from contextlib import suppress
 from datetime import date, datetime, timedelta
 import functools
 from typing import Tuple
+
+from collections_extended import setlist
 
 
 (MON, TUE, WED, THU, FRI, SAT, SUN) = range(7)
@@ -35,7 +38,9 @@ def workday_diff(start_date: datetime, end_date: datetime, holidays=None) -> flo
 	assert isinstance(start_date, datetime)
 	assert isinstance(end_date, datetime)
 	if not holidays:
-		holidays = set()
+		holidays = setlist()
+	else:
+		holidays = setlist(sorted(holidays))
 	if end_date < start_date:
 		return -workday_diff(start_date=end_date, end_date=start_date, holidays=holidays)
 	elif end_date == start_date:
@@ -55,7 +60,9 @@ def workday_diff(start_date: datetime, end_date: datetime, holidays=None) -> flo
 			if (first_full_day + timedelta(d)).weekday() in weekends:
 				num_full_days -= 1
 		# subtract out any holidays
-		for d in holidays:
+		start_index = bisect.bisect_left(holidays, start_date.date())
+		stop_index = bisect.bisect_right(holidays, end_date.date())
+		for d in holidays[start_index:stop_index]:
 			if d.weekday() not in weekends and first_full_day <= d < last_full_day:
 				num_full_days -= 1
 	else:
