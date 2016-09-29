@@ -18,29 +18,29 @@ testall:
 clean:
 	rm -rf build
 	rm -rf dist
-	rm -rf Flask_LenzM_Utils.egg-info
+	rm -rf lenzm_utils.egg-info
 	find . -name *.pyc -delete
 	find . -name *.pyo -delete
 	find . -name *~ -delete
 	find . -name __pycache__ -delete
 
 lint:
-	flake8 flask_lenzm_utils
+	flake8 lenzm_utils
 
 coverage:
-	coverage run --source Flask_LenzM_Utils setup.py test
+	coverage run --source lenzm_utils setup.py test
 	coverage report -m
 	coverage html
-	open htmlcov/index.html
+	# open htmlcov/index.html
 
 publish:
 	python setup.py sdist upload
 	python setup.py bdist_wheel upload
 
 docs:
-	rm -f docs/Flask_LenzM_Utils.rst
+	rm -f docs/lenzm_utils.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ Flask_LenzM_Utils
+	sphinx-apidoc -o docs/ lenzm_utils
 	make -C docs clean
 	make -C docs html
 	open docs/_build/html/index.html

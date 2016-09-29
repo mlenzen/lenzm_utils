@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""Based on https://github.com/pypa/sampleproject/blob/master/setup.py."""
 from __future__ import unicode_literals
 from codecs import open
 import os
@@ -32,21 +30,20 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 
 setup(
-	name='Flask-LenzM-Utils',
+	name='lenzm_utils',
 	version='0.0.2',
-	description='Utils for Flask Projects',
+	description='Various utils including Flask projects',
 	long_description=long_description,
-	keywords='Flask-LenzM-Utils development',
 	author='Michael Lenzen',
 	author_email='m.lenzen@gmail.com',
 	license='MIT',
-	url='https://github.com/mlenzen/Flask-LenzM-Utils',
+	url='https://github.com/mlenzen/lenzm_utils',
 	packages=find_packages(exclude=('tests*', 'docs', 'examples')),
 	include_package_data=True,
 	zip_safe=False,
 	package_data={
-		'': ['README.md', 'LICENSE'],
-	},
+		'': ['README.rst', 'LICENSE'],
+		},
 	install_requires=[
 		'setuptools',
 		'Flask>=0.11',
@@ -54,13 +51,13 @@ setup(
 		'Flask-SQLAlchemy',
 		'alembic',
 		'click',
-	],
+		],
 	tests_require=[
 		'pytest',
-	],
+		],
 	cmdclass=dict(
 		test=PyTest,
-	),
+		),
 	# See: http://pypi.python.org/pypi?%3Aaction=list_classifiers
 	classifiers=[
 		'Development Status :: 3 - Alpha',
@@ -71,5 +68,5 @@ setup(
 		'Programming Language :: Python :: 3.3',
 		'Programming Language :: Python :: 3.4',
 		'Programming Language :: Python :: 3.5',
-	],
-)
+		],
+	)

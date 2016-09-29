@@ -1,20 +1,20 @@
 README
 ######
 
-.. image:: https://travis-ci.org/mlenzen/Flask-LenzM-Utils.svg?branch=master
-	:target: https://travis-ci.org/mlenzen/Flask-LenzM-Utils
+.. image:: https://travis-ci.org/mlenzen/lenzm_utils.svg?branch=master
+	:target: https://travis-ci.org/mlenzen/lenzm_utils
 	:alt: Build Status
 
 
-.. image:: https://coveralls.io/repos/mlenzen/Flask-LenzM-Utils/badge.svg?branch=master
-	:target: https://coveralls.io/r/mlenzen/Flask-LenzM-Utils?branch=master
+.. image:: https://coveralls.io/repos/mlenzen/lenzm_utils/badge.svg?branch=master
+	:target: https://coveralls.io/r/mlenzen/lenzm_utils?branch=master
 	:alt: Coverage
 
 
 Overview
 ========
 
-This package includes one module - ``flask_lenzm_utils``.
+This package includes one module - ``lenzm_utils``.
 
 
 Getting Started
@@ -22,16 +22,16 @@ Getting Started
 
 .. code:: python
 
-	 >>> import flask_lenzm_utils
+	 >>> import lenzm_utils
 
 Installation
 ============
 
-``pip install Flask-LenzM-Utils``
+``pip install git+https://github.com/mlenzen/lenzm_utils.git#egg=lenzm_utils``
 
 Usage
 =====
-	``import flask_lenzm_utils``
+	``import lenzm_utils``
 
 Features
 ========
@@ -39,4 +39,4 @@ Features
 :Author: Michael Lenzen
 :Copyright: 2016 Michael Lenzen
 :License: MIT
-:GitHub: https://github.com/mlenzen/Flask-LenzM-Utils
+:GitHub: https://github.com/mlenzen/lenzm_utils

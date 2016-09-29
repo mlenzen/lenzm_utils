@@ -2,18 +2,17 @@
 language: python
 
 python:
+	- "3.5"
 	- "3.4"
 	- "3.3"
-	- "2.7"
-	- "pypy"
+	- "pypy3"
 
 install:
-	- pip install -r requirements.txt
 	- pip install --editable .
 	- pip install coveralls
 
 script:
 	# command to run tests and collect test coverage
-	- coverage run --source Flask_LenzM_Utils setup.py test
+	- coverage run --source lenzm_utils setup.py test
 
 after_success: coveralls

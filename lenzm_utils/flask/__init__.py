@@ -1,5 +1,5 @@
 """
-Flask_LenzM_Utils
+lenzm_utils.flask
 ~~~~~~~~~~~~~~~~~~~
 
 Utils for Flask Projects
@@ -20,7 +20,7 @@ from sqlalchemy import (
 	)
 from sqlalchemy.orm.exc import NoResultFound
 
-from . import flask_db_admin, url_for_obj, url_update  # noqa
+from . import db_admin, url_for_obj, url_update  # noqa
 
 logger = logging.getLogger(__name__)
 db = flask_sqlalchemy.SQLAlchemy()
