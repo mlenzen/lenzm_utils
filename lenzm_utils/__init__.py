@@ -1,1 +1,1 @@
-from . import comparable_mixin, dates, flask, parse_string
+from . import comparable_mixin, dates, flask, itertools, parse_string
