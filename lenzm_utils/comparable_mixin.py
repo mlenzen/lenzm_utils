@@ -45,7 +45,6 @@ class ComparableMixin():
 
 	def __lt__(self, other):
 		if not self._is_valid_operand(other):
-			print('Not valid operand')
 			return NotImplemented
 		return self._cmp_key() < other._cmp_key()
 
