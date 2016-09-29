@@ -61,3 +61,19 @@ def count(iterable):
 	for elem in iterable:
 		i += 1
 	return i
+
+
+def match_any(res, string):
+	"""Return if a string matches any of a list of regular expressions.
+
+	Args:
+		string (str): The string that you want to check.
+		res: An Iterable of regular expressions to check.
+
+	Returns:
+		True if any of the regexes in res matches string, otherwise False.
+	"""
+	for regex in res:
+		if regex.match(string):
+			return True
+	return False
