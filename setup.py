@@ -31,7 +31,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
 	name='lenzm_utils',
-	version='0.2.0',
+	version='0.3.0',
 	description='Various utils including Flask projects',
 	long_description=long_description,
 	author='Michael Lenzen',
