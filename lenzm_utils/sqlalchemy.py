@@ -5,24 +5,57 @@ import os.path
 from flask import abort
 import flask_sqlalchemy
 from sqlalchemy import (
+	types,
 	Column,
 	Integer,
+	String,
 	ForeignKey,
 	)
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.inspection import inspect
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.orm.collections import (
+	InstrumentedList,
+	InstrumentedSet,
+	InstrumentedDict,
+	)
+import pytz
 
 logger = logging.getLogger(__name__)
 db = flask_sqlalchemy.SQLAlchemy()
 
 
-def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
+def foreign_key_col(col, **kwargs):
 	return Column(
-		col_type,
-		ForeignKey(column, ondelete='CASCADE', onupdate='CASCADE'),
-		nullable=nullable,
-		index=index,
+		col.type,
+		ForeignKey(col, ondelete='CASCADE', onupdate='CASCADE'),
 		**kwargs
 		)
+
+
+def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
+	return foreign_key_col(column, nullable=nullable, index=index, **kwargs)
+
+
+class UTCDateTime(types.TypeDecorator):
+	"""Type for storing and retrieving DateTimes as UTC.
+
+	Naive datetimes are assumed to be UTC.
+	The returned value is always a non-naive UTC datetime.
+	"""
+
+	impl = types.TIMESTAMP(timezone=True)
+
+	def process_bind_param(self, value, dialect):
+		if value is None:
+			return None
+		if value.tzinfo is None:
+			raise ValueError('Cannot handle naive datetime')
+		return value.astimezone(pytz.utc)
+
+	def process_result_value(self, value, dialect):
+		if value is None:
+			return None
+		return value.astimezone(pytz.utc)
 
 
 class BaseMixin():
@@ -34,17 +67,23 @@ class BaseMixin():
 	def find_one_or_404(cls, **kwargs):
 		try:
 			cls.find_one(**kwargs)
-		except NoResultFound:
+		except (NoResultFound, MultipleResultsFound):
 			abort(404)
 
 	@classmethod
-	def find_create(cls, **kwargs):
+	def create(cls, **kwargs):
+		obj = cls(**kwargs)
+		cls.query.session.add(obj)
+		return obj
+
+	@classmethod
+	def find_create(cls, create_args=None, **kwargs):
 		try:
 			return cls.find_one(**kwargs)
 		except NoResultFound:
-			obj = cls(**kwargs)
-			cls.query.session.add(obj)
-			return obj
+			create_args = dict(create_args or {})
+			create_args.update(kwargs)
+			return cls.create(**create_args)
 
 	@classmethod
 	def exists(cls, **kwargs):
@@ -74,14 +113,88 @@ class BaseMixin():
 		raise NotImplementedError
 
 	@classmethod
-	def pkey(cls, **kwargs):
-		"""Return a column definition for the primary key of this model."""
-		raise NotImplementedError
+	def _get_pkey_col(cls):
+		primary_key_cols = inspect(cls).primary_key
+		if len(primary_key_cols) != 1:
+			msg = 'Class %s does not have exactly one primary key column' % cls
+			raise NotImplementedError(msg)
+		return primary_key_cols[0]
 
 	@classmethod
-	def fkey_constraint(cls, *args):
+	def fkey_constraint(cls, *args, ondelete='CASCADE', onupdate='CASCADE'):
 		"""Return a ForeignKeyConstraint for the primary keys of this model."""
-		raise NotImplementedError
+		pkey_col = cls._get_pkey_col()
+		return ForeignKey(pkey_col, *args, ondelete=ondelete, onupdate=onupdate)
+
+	@classmethod
+	def pkey(cls, **kwargs):
+		"""Return a Column definition for the primary key of this model."""
+		pkey_col = cls._get_pkey_col()
+		return foreign_key_col(pkey_col, **kwargs)
+
+	def to_dict(self, sub=None):
+		"""Create a dict of this obj's attributes and optionally related objects.
+
+		Specify which relationships to include as keys in `sub`. The value of
+		each key is the argument to pass to that relation's `to_dict`.
+
+		For example:
+
+		class Character(BaseModel):
+			first_name = Column(String)
+			last_name = Column(String)
+			parents = relationship(Character)
+			siblings = relationship(Character)
+
+		`bart.to_dict({'parents': {'siblings': None}}) == {
+			'first_name': 'Bart',
+			'last_name': 'Simpson',
+			'parents': [
+				{
+					'first_name': 'Homer',
+					'last_name': 'Simpson',
+					'siblings': [],
+					},
+				{
+					'first_name': 'Marge',
+					'last_name': 'Simpson',
+					'siblings': [
+						{
+							'first_name': 'Patty',
+							'last_name': 'Bouvier',
+							},
+						{
+							'first_name': 'Selma',
+							'last_name': 'Bouvier',
+							},
+						],
+					},
+				]
+			}`
+		"""
+		instance_state = inspect(self)
+		columns = instance_state.mapper.column_attrs
+		out = {col.key: getattr(self, col.key) for col in columns}
+		sub = sub or {}
+		for relationship_name, args in sub.items():
+			relationship = getattr(self, relationship_name)
+			try:
+				out[relationship_name] = relationship.to_dict(args)
+			except AttributeError:
+				if isinstance(relationship, (InstrumentedList, InstrumentedSet)):
+					out[relationship_name] = []
+					for relation in relationship:
+						out[relationship_name].append(relation.to_dict(args))
+				elif isinstance(relationship, InstrumentedDict):
+					out[relationship_name] = {}
+					for k, relation in relationship.items():
+						out[relationship_name][k] = relation.to_dict(args)
+				else:
+					msg = "Don't know how to handle relationship of type {rel_type}".format(
+						rel_type=type(relationship),
+					)
+					raise NotImplementedError(msg)
+		return out
 
 	@classmethod
 	def _get_path(cls, path, directory):
@@ -173,9 +286,34 @@ class IntegerPKey():
 	id = Column(Integer, primary_key=True)
 
 	@classmethod
-	def pkey(cls, **kwargs):
-		return parent_key(cls.id, Integer, **kwargs)
+	def _get_pkey_col(cls):
+		return cls.id
+
+	def __hash__(self):
+		return self.id
+
+	def __eq__(self, other):
+		return self.__class__ == other.__class__ and self.id == other.id
 
 	@classmethod
 	def query_default_order(cls):
 		return cls.query.order_by(cls.id)
+
+
+class AbbrPKey():
+
+	abbr = Column(String, primary_key=True)
+
+	@classmethod
+	def _get_pkey_col(cls):
+		return cls.abbr
+
+	def __hash__(self):
+		return hash(self.abbr)
+
+	def __eq__(self, other):
+		return self.__class__ == other.__class__ and self.abbr == other.abbr
+
+	@classmethod
+	def query_default_order(cls):
+		return cls.query.order_by(cls.abbr)
