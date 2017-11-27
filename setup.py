@@ -52,6 +52,7 @@ setup(
 		'alembic',
 		'click',
 		'collections_extended',
+		'openpyxl',
 		],
 	tests_require=[
 		'pytest',

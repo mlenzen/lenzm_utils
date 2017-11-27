@@ -6,6 +6,7 @@ from . import (
 	itertools,
 	parse_string,
 	other,
+	sqlalchemy,
 	)
 
 __version__ = '0.2.0'

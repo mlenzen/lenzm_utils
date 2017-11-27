@@ -5,3 +5,4 @@ flake8
 ipython
 pytest
 wheel>=0.23.0
+-e .
