@@ -24,14 +24,14 @@ class ComparableMixin():
 		raise NotImplementedError()
 
 	def __eq__(self, other):
-		if self._is_valid_operand(other):
-			return self._cmp_key() == other._cmp_key()
-		return False
+		if not self._is_valid_operand(other):
+			return False
+		return self._cmp_key() == other._cmp_key()
 
 	def __ne__(self, other):
-		if self._is_valid_operand(other):
-			return self._cmp_key() != other._cmp_key()
-		return True
+		if not self._is_valid_operand(other):
+			return True
+		return self._cmp_key() != other._cmp_key()
 
 	def __gt__(self, other):
 		if not self._is_valid_operand(other):
