@@ -1,0 +1,4 @@
+[flake8]
+ignore = W191
+max-complexity = 10
+hang-closing = True
