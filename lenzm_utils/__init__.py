@@ -4,8 +4,9 @@ from . import (
 	dicts,
 	flask,
 	itertools,
-	parse_string,
 	other,
+	parse_string,
+	sqlalchemy,
 	)
 
 __version__ = '0.3.0'
