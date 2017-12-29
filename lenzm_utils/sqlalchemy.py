@@ -10,10 +10,19 @@ from sqlalchemy import (
 	Integer,
 	ForeignKey,
 	)
+from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.exc import NoResultFound
 
 logger = logging.getLogger(__name__)
 db = flask_sqlalchemy.SQLAlchemy()
+
+
+def foreign_key_col(col, **kwargs):
+	return Column(
+		col.type,
+		ForeignKey(col, ondelete='CASCADE', onupdate='CASCADE'),
+		**kwargs
+		)
 
 
 def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
@@ -29,31 +38,45 @@ def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
 class BaseMixin():
 	@classmethod
 	def find_one(cls, **kwargs):
+		"""Query this table for a single row matching kwargs filters."""
 		return cls.query.filter_by(**kwargs).one()
 
 	@classmethod
 	def find_one_or_404(cls, **kwargs):
+		"""Query this table for a single row, flask.abort(404) if not found."""
 		try:
 			cls.find_one(**kwargs)
 		except NoResultFound:
 			abort(404)
 
 	@classmethod
-	def find_create(cls, **kwargs):
+	def create(cls, **kwargs):
+		obj = cls(**kwargs)
+		cls.query.session.add(obj)
+		return obj
+
+	@classmethod
+	def find_create(cls, create_args=None, **kwargs):
+		"""Find or create an instance of this model.
+
+		Optionally provide arguments used only for creating the object, not
+		querying.
+		"""
 		try:
 			return cls.find_one(**kwargs)
 		except NoResultFound:
-			obj = cls(**kwargs)
-			cls.query.session.add(obj)
-			return obj
+			create_args = dict(create_args or {})
+			create_args.update(kwargs)
+			return cls.create(**create_args)
 
 	@classmethod
 	def exists(cls, **kwargs):
 		try:
 			cls.find_one(**kwargs)
-			return True
 		except NoResultFound:
 			return False
+		else:
+			return True
 
 	@classmethod
 	def _repr_class_template(cls):
@@ -75,9 +98,24 @@ class BaseMixin():
 		raise NotImplementedError
 
 	@classmethod
+	def _get_pkey_col(cls):
+		primary_key_cols = inspect(cls).primary_key
+		if len(primary_key_cols) != 1:
+			msg = 'Class %s does not have exactly one primary key column' % cls
+			raise NotImplementedError(msg)
+		return primary_key_cols[0]
+
+	@classmethod
+	def fkey_constraint(cls, *args, ondelete='CASCADE', onupdate='CASCADE'):
+		"""Return a ForeignKeyConstraint for the primary keys of this model."""
+		pkey_col = cls._get_pkey_col()
+		return ForeignKey(pkey_col, *args, ondelete=ondelete, onupdate=onupdate)
+
+	@classmethod
 	def pkey(cls, **kwargs):
-		"""Return a column definition for the primary key of this model."""
-		raise NotImplementedError
+		"""Return a Column definition for the primary key of this model."""
+		pkey_col = cls._get_pkey_col()
+		return foreign_key_col(pkey_col, **kwargs)
 
 	@classmethod
 	def fkey_constraint(cls, *args):
@@ -170,12 +208,19 @@ class BaseMixin():
 
 
 class IntegerPKey():
+	"""Mixin for models with an integer 'id' as the primary key."""
 
 	id = Column(Integer, primary_key=True)
 
 	@classmethod
-	def pkey(cls, **kwargs):
-		return parent_key(cls.id, Integer, **kwargs)
+	def _get_pkey_col(cls):
+		return cls.id
+
+	def __hash__(self):
+		return self.id
+
+	def __eq__(self, other):
+		return self.__class__ == other.__class__ and self.id == other.id
 
 	@classmethod
 	def query_default_order(cls):
