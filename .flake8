@@ -1,4 +1,6 @@
 [flake8]
-ignore = W191
+ignore = W191,D103,D105,D107,D203,E711,N805
 max-complexity = 10
+max-line-length = 80
 hang-closing = True
+exclude = .hg,.git,.venv,.eggs,docs,bower_components,migrations

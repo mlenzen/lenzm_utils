@@ -1,3 +1,4 @@
+"""Utils for working with SQLAlchemy."""
 import csv
 from decimal import Decimal
 import fractions
@@ -35,7 +36,13 @@ def foreign_key_col(col, **kwargs):
 
 
 def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
-	return foreign_key_col(column, nullable=nullable, index=index, **kwargs)
+	return Column(
+		col_type,
+		ForeignKey(column, ondelete='CASCADE', onupdate='CASCADE'),
+		nullable=nullable,
+		index=index,
+		**kwargs
+		)
 
 
 class Fraction(types.TypeDecorator):
@@ -85,10 +92,12 @@ class UTCDateTime(types.TypeDecorator):
 class BaseMixin():
 	@classmethod
 	def find_one(cls, **kwargs):
+		"""Query this table for a single row matching kwargs filters."""
 		return cls.query.filter_by(**kwargs).one()
 
 	@classmethod
 	def find_one_or_404(cls, **kwargs):
+		"""Query this table for a single row, flask.abort(404) if not found."""
 		try:
 			cls.find_one(**kwargs)
 		except (NoResultFound, MultipleResultsFound):
@@ -102,6 +111,11 @@ class BaseMixin():
 
 	@classmethod
 	def find_create(cls, create_args=None, **kwargs):
+		"""Find or create an instance of this model.
+
+		Optionally provide arguments used only for creating the object, not
+		querying.
+		"""
 		try:
 			return cls.find_one(**kwargs)
 		except NoResultFound:
@@ -113,9 +127,10 @@ class BaseMixin():
 	def exists(cls, **kwargs):
 		try:
 			cls.find_one(**kwargs)
-			return True
 		except NoResultFound:
 			return False
+		else:
+			return True
 
 	@classmethod
 	def _repr_class_template(cls):
@@ -306,6 +321,7 @@ class BaseMixin():
 
 
 class IntegerPKey():
+	"""Mixin for models with an integer 'id' as the primary key."""
 
 	id = Column(Integer, primary_key=True)
 

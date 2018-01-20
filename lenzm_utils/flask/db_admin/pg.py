@@ -48,3 +48,23 @@ def restore(location):
 		'--clean',
 		location,
 		))
+
+
+@cli.command()
+@click.option('-c', '--command')
+@click.option('-f', '--file')
+def psql(command=None, file=None):
+	"""Call psql."""
+	os.environ['PGPASSWORD'] = current_app.config['PG_PASSWORD']
+	psql = current_app.config.get('PG_BIN_DIR', '') + 'psql'
+	args = [
+		psql,
+		'--host={}'.format(current_app.config['PG_HOST']),
+		'--username={}'.format(current_app.config['PG_USERNAME']),
+		'--dbname={}'.format(current_app.config['PG_DB_NAME']),
+		]
+	if command:
+		args.append('--command=%s' % command)
+	if file:
+		args.append('--file=%s' % file)
+	subprocess.call(args)

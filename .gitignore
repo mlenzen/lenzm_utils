@@ -62,6 +62,6 @@ docs/_build
 MANIFEST
 
 env
-.env
 venv
+.env
 .venv
