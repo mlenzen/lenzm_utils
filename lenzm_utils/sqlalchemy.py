@@ -133,6 +133,18 @@ class BaseMixin():
 			return True
 
 	@classmethod
+	def cast(cls, obj, allow_none=True):
+		if obj is None:
+			if allow_none:
+				return None
+			else:
+				raise ValueError(f'Cannot cast None to {cls}')
+		elif isinstance(obj, cls):
+			return obj
+		else:
+			raise TypeError(f'Cannnot cast an object of {type(obj)} to {cls}')
+
+	@classmethod
 	def _repr_class_template(cls):
 		col_names = [col.name for col in cls.__table__.columns]
 		item_format = '{col}={{obj.{col}!r}}'
@@ -326,6 +338,16 @@ class IntegerPKey():
 	id = Column(Integer, primary_key=True)
 
 	@classmethod
+	def cast(cls, obj, **kwargs):
+		if isinstance(obj, int):
+			value = cls.query.get(obj)
+			if not value:
+				raise ValueError(f"No {cls} could be found from int {obj}")
+			return value
+		else:
+			return super().cast(obj, **kwargs)
+
+	@classmethod
 	def _get_pkey_col(cls):
 		return cls.id
 
@@ -343,6 +365,16 @@ class IntegerPKey():
 class AbbrPKey():
 
 	abbr = Column(String, primary_key=True)
+
+	@classmethod
+	def cast(cls, obj, **kwargs):
+		if isinstance(obj, str):
+			value = cls.query.get(obj)
+			if not value:
+				raise ValueError(f"No {cls} could be found from str {obj}")
+			return value
+		else:
+			return super().cast(obj, **kwargs)
 
 	@classmethod
 	def _get_pkey_col(cls):
