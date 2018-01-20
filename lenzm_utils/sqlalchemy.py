@@ -1,4 +1,6 @@
 import csv
+from decimal import Decimal
+import fractions
 import logging
 import os.path
 
@@ -34,6 +36,28 @@ def foreign_key_col(col, **kwargs):
 
 def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
 	return foreign_key_col(column, nullable=nullable, index=index, **kwargs)
+
+
+class Fraction(types.TypeDecorator):
+	"""Type for storing and retrieving Fractions.
+
+	Currently, this is backed by a Decimal, so some precision may be lost on
+	conversion.
+	"""
+
+	impl = types.Numeric
+
+	def process_bind_param(self, value, dialect):
+		if value is None:
+			return None
+		assert isinstance(value, int) or isinstance(value, fractions.Fraction)
+		return value.numerator / Decimal(value.denominator)
+
+	def process_result_value(self, value, dialect):
+		if value is None:
+			return None
+		assert isinstance(value, Decimal)
+		return fractions.Fraction(value).limit_denominator()
 
 
 class UTCDateTime(types.TypeDecorator):
@@ -192,7 +216,7 @@ class BaseMixin():
 				else:
 					msg = "Don't know how to handle relationship of type {rel_type}".format(
 						rel_type=type(relationship),
-					)
+						)
 					raise NotImplementedError(msg)
 		return out
 
