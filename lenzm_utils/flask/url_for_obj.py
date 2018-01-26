@@ -46,9 +46,9 @@ def context_processor():
 """
 
 # TODO make this an extension
-#	add url_for_obj to context in extension init_app
-#	store class_function_mapping in app context
-#	Don't assume it's part of a blueprint by adding '.' before the function name
+# 	add url_for_obj to context in extension init_app
+# 	store class_function_mapping in app context
+# 	Don't assume it's part of a blueprint by adding '.' before the function name
 # 	  Is there a way of checking? Should it be an option in register?
 
 from inspect import signature

@@ -19,7 +19,10 @@ def all_equal(iterable):
 
 
 def one(iterable):
-	"""Return the single element in iterable, raise an error if there isn't exactly one element."""
+	"""Return the single element in iterable.
+
+	Raise an error if there isn't exactly one element.
+	"""
 	item = None
 	iterator = iter(iterable)
 	try:
@@ -31,7 +34,7 @@ def one(iterable):
 	except StopIteration:
 		return item
 	else:
-		raise ValueError('Iterable contains multiple items, must contain exactly one.')
+		raise ValueError('object contains >1 items, must contain exactly one.')
 
 
 def first(iterable):

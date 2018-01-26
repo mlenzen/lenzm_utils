@@ -3,10 +3,10 @@ import bisect
 import calendar
 from contextlib import suppress
 from datetime import date, datetime, timedelta
-import functools
 from typing import Tuple
 
 from collections_extended import setlist
+from .comparable_mixin import ComparableSameClassMixin
 
 
 (MON, TUE, WED, THU, FRI, SAT, SUN) = range(7)
@@ -32,17 +32,17 @@ def week_start(d: datetime, starts_on=SUN) -> date:
 	return d
 
 
-def workday_diff(start_date: datetime, end_date: datetime, holidays=None) -> float:
-	"""Calculate the number of working days between two dates.
-	"""
+def workday_diff(  # noqa no way to make this simpler
+	start_date: datetime,
+	end_date: datetime,
+	holidays=None,
+	) -> float:
+	"""Calculate the number of working days between two dates."""
 	assert isinstance(start_date, datetime)
 	assert isinstance(end_date, datetime)
-	if not holidays:
-		holidays = setlist()
-	else:
-		holidays = setlist(sorted(holidays))
+	holidays = setlist(sorted(holidays or []))
 	if end_date < start_date:
-		return -workday_diff(start_date=end_date, end_date=start_date, holidays=holidays)
+		return -workday_diff(end_date, start_date, holidays=holidays)
 	elif end_date == start_date:
 		return 0
 	# first full day is inclusive
@@ -68,6 +68,7 @@ def workday_diff(start_date: datetime, end_date: datetime, holidays=None) -> flo
 	else:
 		num_full_days = 0
 
+	# Calculate partial dats
 	def exclude_day(d):
 		return d.weekday() in weekends or d in holidays
 
@@ -77,10 +78,10 @@ def workday_diff(start_date: datetime, end_date: datetime, holidays=None) -> flo
 			partial_days = (end_date - start_date) / timedelta(days=1)
 	else:
 		if not exclude_day(start_date):
-			start_date_eod = datetime(first_full_day.year, first_full_day.month, first_full_day.day)
+			start_date_eod = midnight(first_full_day)
 			partial_days += (start_date_eod - start_date) / timedelta(days=1)
 		if not exclude_day(end_date):
-			end_date_eod = datetime(last_full_day.year, last_full_day.month, last_full_day.day)
+			end_date_eod = midnight(last_full_day)
 			partial_days += (end_date - end_date_eod) / timedelta(days=1)
 	return partial_days + num_full_days
 
@@ -112,8 +113,7 @@ def past_complete_weeks(
 	return start, end
 
 
-@functools.total_ordering
-class Month():
+class Month(ComparableSameClassMixin):
 
 	def __init__(self, year, month):
 		if not 0 < month <= 12:
@@ -190,14 +190,8 @@ class Month():
 			return None
 		return cls(d.year, d.month)
 
-	def __eq__(self, other):
-		return isinstance(other, Month) and (self.year, self.month) == (other.year, other.month)
-
-	def __lt__(self, other):
-		try:
-			return (self.year, self.month) < (other.year, other.month)
-		except AttributeError:
-			return NotImplemented
+	def _cmp_key(self):
+		return self.year, self.month
 
 	def __sub__(self, other):
 		"""Return the number of months between two months."""
@@ -246,7 +240,12 @@ def parse_iso_date_with_colon(date_string):
 	return datetime.strptime(clean, '%Y-%m-%dT%H:%M:%S%z')
 
 
-def parse_date_missing_zero_padding(date_string, sep='/', order='mdy', min_year=2000):
+def parse_date_missing_zero_padding(
+	date_string: str,
+	sep='/',
+	order='mdy',
+	min_year=2000,
+	) -> date:
 	"""Parse dates without zero padding like 3/1/14.
 
 	If min_year is set, then the year string can be two digits and is parsed as

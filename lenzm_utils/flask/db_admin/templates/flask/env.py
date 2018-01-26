@@ -17,7 +17,10 @@ db = current_app.extensions['sqlalchemy'].db
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-config.set_main_option('sqlalchemy.url', current_app.config.get('SQLALCHEMY_DATABASE_URI'))
+config.set_main_option(
+    'sqlalchemy.url',
+    current_app.config.get('SQLALCHEMY_DATABASE_URI'),
+    )
 target_metadata = db.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -62,6 +65,7 @@ def run_migrations_online():
             context.run_migrations()
     finally:
         connection.close()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

@@ -6,12 +6,18 @@ from werkzeug.datastructures import MultiDict
 
 
 def url_update_args(**kwargs):
-	"""Take the current URL and update paramters, keeping all unspecified the same."""
+	"""Take the current URL and update only some parameters.
+
+	Keeping all unspecified params the same and only update the passed parms.
+	"""
 	return url_update_endpoint_args(request.endpoint, **kwargs)
 
 
 def url_update_endpoint_args(endpoint, **kwargs):
-	"""Return the URL for passed endpoint using args from current request and kwargs."""
+	"""Like url_for by using current URL for unspecified parameters.
+
+	Return the URL for passed endpoint using args from current request and kwargs.
+	"""
 	# request.args contains parameters from the query string
 	# request.view_args contains parameters that matched the view signature
 	args = MultiDict(request.args)

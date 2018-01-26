@@ -3,7 +3,6 @@ import functools
 import urllib.parse
 
 
-
 STATE_ABBRS = {
 	'Alabama': 'AL',
 	'Alaska': 'AK',
