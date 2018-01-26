@@ -53,6 +53,7 @@ setup(
 		'click',
 		'collections_extended',
 		'openpyxl',
+		'pytz',
 		],
 	tests_require=[
 		'pytest',
