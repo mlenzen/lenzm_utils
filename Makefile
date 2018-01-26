@@ -29,7 +29,7 @@ clean:
 
 .PHONY: lint
 lint:
-	$(venv)flake8 lenzm_utils
+	$(venv)flake8 --statistics --count
 
 .PHONY: coverage
 coverage:
