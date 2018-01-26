@@ -1,4 +1,4 @@
-.PHONY: docs test
+venv = ./.venv/bin/
 
 help:
 	@echo "  clean       remove unwanted files like .pyc's"
@@ -9,12 +9,15 @@ help:
 	@echo "  publish     publish to PyPI"
 	@echo "  docs        create HMTL docs (using Sphinx)"
 
+.PHONY: tests
 tests:
-	python setup.py test
+	$(venv)py.test
 
+.PHONY: testall
 testall:
-	tox
+	$(venv)tox
 
+.PHONY: clean
 clean:
 	rm -rf build
 	rm -rf dist
@@ -24,23 +27,29 @@ clean:
 	find . -name *~ -delete
 	find . -name __pycache__ -delete
 
+.PHONY: lint
 lint:
-	flake8 lenzm_utils
+	$(venv)flake8 lenzm_utils
 
+.PHONY: coverage
 coverage:
-	coverage run --source lenzm_utils setup.py test
-	coverage report -m
-	coverage html
+	$(venv)coverage run --source lenzm_utils setup.py test
+	$(venv)coverage report -m
+	$(venv)coverage html
 	# open htmlcov/index.html
 
-publish:
-	python setup.py sdist upload
-	python setup.py bdist_wheel upload
+.PHONY: publish
+publish: lint testall
+	git push
+	git push --tags
+	$(venv)python setup.py sdist upload
+	$(venv)python setup.py bdist_wheel upload
 
+.PHONY: docs
 docs:
 	rm -f docs/lenzm_utils.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ lenzm_utils
+	$(venv)sphinx-apidoc -o docs/ lenzm_utils
 	make -C docs clean
 	make -C docs html
 	open docs/_build/html/index.html
