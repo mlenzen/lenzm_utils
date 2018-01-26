@@ -37,6 +37,6 @@ Features
 ========
 
 :Author: Michael Lenzen
-:Copyright: 2016 Michael Lenzen
+:Copyright: 2018 Michael Lenzen
 :License: MIT
 :GitHub: https://github.com/mlenzen/lenzm_utils
