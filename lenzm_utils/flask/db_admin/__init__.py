@@ -27,8 +27,9 @@ def create_all():
 @click.confirmation_option(help='Are you sure you want to drop the db?')
 def drop_all():
 	"""Drop all database objects (drop_all & create_all)."""
-	logger.info('dropping all')
-	current_app.extensions['sqlalchemy'].db.drop_all()
+	if click.confirm('Are you sure you want to drop all data?'):
+		logger.info('dropping all')
+		current_app.extensions['sqlalchemy'].db.drop_all()
 
 
 @cli.command()
