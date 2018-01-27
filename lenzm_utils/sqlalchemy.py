@@ -27,6 +27,17 @@ logger = logging.getLogger(__name__)
 db = flask_sqlalchemy.SQLAlchemy()
 
 
+def psycopg_uri(username, password, db_name, host='', port=None):
+	"""Create a URL for psycopg2.
+
+	http://docs.sqlalchemy.org/en/latest/dialects/postgresql.html#module-sqlalchemy.dialects.postgresql.psycopg2  # noqa
+	"""
+	if port:
+		return f'postgresql+psycopg2://{username}:{password}@{host}:{port}/{db_name}'
+	else:
+		return f'postgresql+psycopg2://{username}:{password}@{host}/{db_name}'
+
+
 def foreign_key_col(col, **kwargs):
 	return Column(
 		col.type,
