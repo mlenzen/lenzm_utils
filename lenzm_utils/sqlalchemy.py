@@ -158,7 +158,7 @@ class BaseMixin():
 	@classmethod
 	def _repr_class_template(cls):
 		col_names = [col.name for col in cls.__table__.columns]
-		item_format = '{col}={{obj.{col}!r}}'
+		item_format = '{col}={{self.{col}!r}}'
 		fields = ', '.join(item_format.format(col=col) for col in col_names)
 		return '{class_name}({fields})'.format(
 			class_name=cls.__name__,
@@ -167,7 +167,7 @@ class BaseMixin():
 
 	def __repr__(self):
 		class_template = self._repr_class_template()
-		return class_template.format(obj=self)
+		return class_template.format(obj=self, self=self)
 
 	@classmethod
 	def query_default_order(cls):
