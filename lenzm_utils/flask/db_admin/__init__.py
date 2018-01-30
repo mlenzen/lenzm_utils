@@ -1,6 +1,7 @@
 """Perform database admin tasks including migrations using Alembic.
 """
 import logging
+import sys
 
 from flask import current_app
 from flask.cli import AppGroup
@@ -30,6 +31,8 @@ def drop_all():
 	if click.confirm('Are you sure you want to drop all data?'):
 		logger.info('dropping all')
 		current_app.extensions['sqlalchemy'].db.drop_all()
+	else:
+		sys.exit(1)
 
 
 @cli.command()
@@ -40,3 +43,5 @@ def reset_all():
 		current_app.extensions['sqlalchemy'].db.drop_all()
 		logger.info('creating all')
 		current_app.extensions['sqlalchemy'].db.create_all()
+	else:
+		sys.exit(1)
