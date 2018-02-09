@@ -33,3 +33,14 @@ def url_update_endpoint_args(endpoint, **kwargs):
 		if len(args[key]) == 1:
 			args[key] = args[key][0]
 	return url_for(endpoint, **args)
+
+
+def url_update(*args, **kwargs):
+	if args:
+		if len(args) > 1:
+			raise ValueError
+		else:
+			return url_update_endpoint_args(args[0], **kwargs)
+	else:
+		return url_update_args(**kwargs)
+
