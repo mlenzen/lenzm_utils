@@ -43,4 +43,3 @@ def url_update(*args, **kwargs):
 			return url_update_endpoint_args(args[0], **kwargs)
 	else:
 		return url_update_args(**kwargs)
-
