@@ -35,6 +35,7 @@ setup(
 		'collections_extended',
 		'openpyxl',
 		'pytz',
+		'chardet',
 		],
 	tests_require=[
 		'pytest',

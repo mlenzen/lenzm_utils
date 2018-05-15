@@ -1,7 +1,9 @@
 """util - simple functions needed in multiple modules"""
 import functools
+import io
 import urllib.parse
 
+import chardet
 
 STATE_ABBRS = {
 	'Alabama': 'AL',
@@ -176,3 +178,17 @@ def create_url(
 		port=port,
 		)
 	return urllib.parse.urlunsplit((scheme, netloc, path, query, fragment))
+
+
+def sniff_and_decode(stream):
+	"""Sniff the encoding of an IO stream, decode it and return a text stream.
+
+	This reads the entire stream into memory.
+	"""
+	# This probably could be done without reading all of the data into memory
+	# https://chardet.readthedocs.io/en/latest/usage.html#example-detecting-encoding-incrementally
+	# Then reset the original stream to 0 and wrap it with a decoder
+	data = stream.read()
+	encoding = chardet.detect(data)['encoding']
+	data = data.decode(encoding)
+    return io.StringIO(data)
