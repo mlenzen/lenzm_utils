@@ -191,4 +191,4 @@ def sniff_and_decode(stream):
 	data = stream.read()
 	encoding = chardet.detect(data)['encoding']
 	data = data.decode(encoding)
-    return io.StringIO(data)
+	return io.StringIO(data)
