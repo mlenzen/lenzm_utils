@@ -33,7 +33,7 @@ def employee_view(id):
 	pass
 
 
-@url_for_obj.register(Manager, {
+@url_for_obj.register(Manager, get_funcs={
 	'full_name': lambda manager: manager.first_name + '_' + manager.last_name,
 	})
 @blueprint.route('/manager/<full_name>')
