@@ -38,8 +38,7 @@ def url_update_endpoint_args(endpoint, **kwargs):
 def url_update(*args, **kwargs):
 	if args:
 		if len(args) > 1:
-			raise ValueError
-		else:
-			return url_update_endpoint_args(args[0], **kwargs)
+			raise ValueError('Can only pass one positional argument')
+		return url_update_endpoint_args(args[0], **kwargs)
 	else:
-		return url_update_args(**kwargs)
+		return url_update_endpoint_args(request.endpoint, **kwargs)
