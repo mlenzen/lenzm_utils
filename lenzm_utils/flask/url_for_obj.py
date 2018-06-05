@@ -58,12 +58,16 @@ from flask import url_for
 class_function_mapping = {}
 
 
-def url_for_obj(obj):
+def url_for_obj(obj, option=None):
 	obj_type = type(obj)
+	if option:
+		key = (obj_type, option)
+	else:
+		key = obj_type
 	try:
-		render_func, get_funcs = class_function_mapping[obj_type]
+		render_func, get_funcs = class_function_mapping[key]
 	except KeyError:
-		raise ValueError('No view function registered for {}'.format(obj_type))
+		raise ValueError('No view function registered for {}'.format(key))
 	kwargs = {}
 	for arg in signature(render_func).parameters:
 		if arg in get_funcs:
@@ -73,11 +77,15 @@ def url_for_obj(obj):
 	return url_for('.' + render_func.__name__, **kwargs)
 
 
-def register(class_, get_funcs={}):
-	""" A decorator to register a function as the way to display an object of
-	class_
+def register(class_, option=None, get_funcs={}):
+	"""A decorator to register a function as the way to display an object of class_
 	"""
+	if option:
+		key = (class_, option)
+	else:
+		key = class_
+
 	def decorator(func):
-		class_function_mapping[class_] = (func, get_funcs)
+		class_function_mapping[key] = (func, get_funcs)
 		return func
 	return decorator
