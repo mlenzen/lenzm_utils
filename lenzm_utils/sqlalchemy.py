@@ -428,3 +428,16 @@ class AbbrPKey():
 	@classmethod
 	def query_default_order(cls):
 		return cls.query.order_by(cls.abbr)
+
+
+class no_autoflush(object):
+	"""A context manager to suppress autoflush."""
+	def __init__(self, session):
+		self.session = session
+		self.autoflush = session.autoflush
+
+	def __enter__(self):
+		self.session.autoflush = False
+
+	def __exit__(self, type, value, traceback):
+		self.session.autoflush = self.autoflush
