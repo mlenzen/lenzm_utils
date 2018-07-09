@@ -4,6 +4,7 @@ from decimal import Decimal
 import fractions
 import logging
 import os.path
+from typing import Sequence
 
 from flask import abort
 import flask_sqlalchemy
@@ -13,6 +14,7 @@ from sqlalchemy import (
 	Integer,
 	String,
 	ForeignKey,
+	ForeignKeyConstraint,
 	)
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
@@ -101,6 +103,22 @@ class UTCDateTime(types.TypeDecorator):
 
 
 class BaseMixin():
+	# Build table args using inheritance
+
+	_table_args = ()
+	_table_kwargs = {}
+
+	@declared_attr
+	def __table_args__(cls):
+		args = []
+		kwargs = {}
+		for par_cls in reversed(cls.mro()):
+			with suppress(AttributeError):
+				args.extend(par_cls._table_args)
+			with suppress(AttributeError):
+				kwargs.update(par_cls._table_kwargs)
+		return tuple(args) + (kwargs,)
+
 	@classmethod
 	def find_one(cls, **kwargs):
 		"""Query this table for a single row matching kwargs filters."""
@@ -183,10 +201,18 @@ class BaseMixin():
 		return primary_key_cols[0]
 
 	@classmethod
-	def fkey_constraint(cls, *args, ondelete='CASCADE', onupdate='CASCADE'):
+	def fkey_constraint(
+			cls, cols: Sequence,
+			ondelete='CASCADE',
+			onupdate='CASCADE',
+	) -> ForeignKeyConstraint:
 		"""Return a ForeignKeyConstraint for the primary keys of this model."""
-		pkey_col = cls._get_pkey_col()
-		return ForeignKey(pkey_col, *args, ondelete=ondelete, onupdate=onupdate)
+		return ForeignKeyConstraint(
+			cols,
+			inspect(cls).primary_key,
+			ondelete=ondelete,
+			onupdate=onupdate,
+			)
 
 	@classmethod
 	def pkey(cls, **kwargs):
