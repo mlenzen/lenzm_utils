@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
-from codecs import open
+
 import os
+from codecs import open
+
 from setuptools import setup, find_packages
 
 # Get the long description from the relevant file
@@ -48,5 +50,6 @@ setup(
 		'License :: OSI Approved :: BSD License',
 		'Programming Language :: Python :: 3',
 		'Programming Language :: Python :: 3.6',
+		'Programming Language :: Python :: 3.7',
 		],
 	)
