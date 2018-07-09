@@ -1,5 +1,6 @@
 """Utils for working with SQLAlchemy."""
 import csv
+from contextlib import suppress
 from decimal import Decimal
 import fractions
 import logging
@@ -16,6 +17,7 @@ from sqlalchemy import (
 	ForeignKey,
 	ForeignKeyConstraint,
 	)
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.orm.collections import (
@@ -202,10 +204,10 @@ class BaseMixin():
 
 	@classmethod
 	def fkey_constraint(
-			cls, cols: Sequence,
-			ondelete='CASCADE',
-			onupdate='CASCADE',
-	) -> ForeignKeyConstraint:
+		cls, cols: Sequence,
+		ondelete='CASCADE',
+		onupdate='CASCADE',
+		) -> ForeignKeyConstraint:
 		"""Return a ForeignKeyConstraint for the primary keys of this model."""
 		return ForeignKeyConstraint(
 			cols,
