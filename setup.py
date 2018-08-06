@@ -19,7 +19,7 @@ setup(
 	author_email='m.lenzen@gmail.com',
 	license='MIT',
 	url='https://github.com/mlenzen/lenzm_utils',
-	packages=find_packages(exclude=('tests*', 'docs', 'examples')),
+	packages=find_packages(exclude=('tests*', )),
 	include_package_data=True,
 	zip_safe=False,
 	package_data={

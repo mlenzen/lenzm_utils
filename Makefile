@@ -7,7 +7,6 @@ help:
 	@echo "  testall     run tests for all Python versions (using tox)"
 	@echo "  coverage    run coverage report"
 	@echo "  publish     publish to PyPI"
-	@echo "  docs        create HMTL docs (using Sphinx)"
 
 .PHONY: tests
 tests:
@@ -44,12 +43,3 @@ publish: lint testall
 	git push --tags
 	$(venv)python setup.py sdist upload
 	$(venv)python setup.py bdist_wheel upload
-
-.PHONY: docs
-docs:
-	rm -f docs/lenzm_utils.rst
-	rm -f docs/modules.rst
-	$(venv)sphinx-apidoc -o docs/ lenzm_utils
-	make -C docs clean
-	make -C docs html
-	open docs/_build/html/index.html
