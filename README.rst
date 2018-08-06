@@ -36,6 +36,22 @@ Usage
 Features
 ========
 
+* TODO
+
+Running Tests
+=============
+
+Some tests require a postgres db to be set up with username/password/dbname all "test"
+
+On Ubuntu:
+
+.. code-block:: sh
+
+	$ sudo -u postgres createuser -P test
+	$ sudo -u postgres createdb -O test test
+	$ sudo -u postgres psql test -c "create extension citext"
+
+
 :Author: Michael Lenzen
 :Copyright: 2018 Michael Lenzen
 :License: MIT

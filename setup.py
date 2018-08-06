@@ -41,6 +41,7 @@ setup(
 		],
 	tests_require=[
 		'pytest',
+		'psycopg2-binary',
 		],
 	# See: http://pypi.python.org/pypi?%3Aaction=list_classifiers
 	classifiers=[
