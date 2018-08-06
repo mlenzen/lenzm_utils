@@ -7,21 +7,25 @@ from lenzm_utils.sqlalchemy import CIText
 
 
 @pytest.fixture(scope='session')
-def engine():
+def session(request):
 	engine = create_engine('postgresql://test:test@localhost/test')
 	conn = engine.connect()
-	# conn.execute('CREATE EXTENSION IF NOT EXISTS citext;')
-
 	meta.bind = conn
 	meta.drop_all()
 	meta.create_all()
-	return engine
 
+	transaction = conn.begin()
+	Session = orm.sessionmaker(bind=conn)
+	sess = Session()
 
-@pytest.fixture(scope='session')
-def session(engine):
-	Session = orm.sessionmaker(bind=engine)
-	return Session()
+	def teardown():
+		transaction.rollback()
+		meta.drop_all()
+		conn.close()
+		# sess.remove()
+
+	request.addfinalizer(teardown)
+	return sess
 
 
 meta = MetaData()
