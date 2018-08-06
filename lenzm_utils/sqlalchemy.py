@@ -1,9 +1,11 @@
 """Utils for working with SQLAlchemy."""
 import csv
+from contextlib import suppress
 from decimal import Decimal
 import fractions
 import logging
 import os.path
+from typing import Sequence
 
 from flask import abort
 import flask_sqlalchemy
@@ -16,8 +18,10 @@ from sqlalchemy import (
 	DateTime,
 	TypeDecorator,
 	Numeric,
+	ForeignKeyConstraint,
 	)
 from sqlalchemy.dialects.postgresql.base import ischema_names
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.orm.collections import (
@@ -133,6 +137,22 @@ class UTCDateTime(TypeDecorator):
 
 
 class BaseMixin():
+	# Build table args using inheritance
+
+	_table_args = ()
+	_table_kwargs = {}
+
+	@declared_attr
+	def __table_args__(cls):
+		args = []
+		kwargs = {}
+		for par_cls in reversed(cls.mro()):
+			with suppress(AttributeError):
+				args.extend(par_cls._table_args)
+			with suppress(AttributeError):
+				kwargs.update(par_cls._table_kwargs)
+		return tuple(args) + (kwargs,)
+
 	@classmethod
 	def find_one(cls, **kwargs):
 		"""Query this table for a single row matching kwargs filters."""
@@ -215,10 +235,18 @@ class BaseMixin():
 		return primary_key_cols[0]
 
 	@classmethod
-	def fkey_constraint(cls, *args, ondelete='CASCADE', onupdate='CASCADE'):
+	def fkey_constraint(
+		cls, cols: Sequence,
+		ondelete='CASCADE',
+		onupdate='CASCADE',
+		) -> ForeignKeyConstraint:
 		"""Return a ForeignKeyConstraint for the primary keys of this model."""
-		pkey_col = cls._get_pkey_col()
-		return ForeignKey(pkey_col, *args, ondelete=ondelete, onupdate=onupdate)
+		return ForeignKeyConstraint(
+			cols,
+			inspect(cls).primary_key,
+			ondelete=ondelete,
+			onupdate=onupdate,
+			)
 
 	@classmethod
 	def pkey(cls, **kwargs):
@@ -432,3 +460,16 @@ class AbbrPKey():
 	@classmethod
 	def query_default_order(cls):
 		return cls.query.order_by(cls.abbr)
+
+
+class no_autoflush(object):
+	"""A context manager to suppress autoflush."""
+	def __init__(self, session):
+		self.session = session
+		self.autoflush = session.autoflush
+
+	def __enter__(self):
+		self.session.autoflush = False
+
+	def __exit__(self, type, value, traceback):
+		self.session.autoflush = self.autoflush

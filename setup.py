@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
-from codecs import open
+
 import os
+from codecs import open
+
 from setuptools import setup, find_packages
 
 # Get the long description from the relevant file
@@ -12,7 +14,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
 	name='lenzm_utils',
-	version='0.7.0',
+	version='0.8.2',
 	description='Various utils including Flask projects',
 	long_description=long_description,
 	author='Michael Lenzen',
