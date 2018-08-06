@@ -7,13 +7,17 @@ import os.path
 
 from flask import abort
 import flask_sqlalchemy
+import pytz
 from sqlalchemy import (
-	types,
 	Column,
 	Integer,
 	String,
 	ForeignKey,
+	DateTime,
+	TypeDecorator,
+	Numeric,
 	)
+from sqlalchemy.dialects.postgresql.base import ischema_names
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.orm.collections import (
@@ -21,10 +25,34 @@ from sqlalchemy.orm.collections import (
 	InstrumentedSet,
 	InstrumentedDict,
 	)
-import pytz
+from sqlalchemy.types import Concatenable, UserDefinedType
 
 logger = logging.getLogger(__name__)
 db = flask_sqlalchemy.SQLAlchemy()
+
+
+class CIText(Concatenable, UserDefinedType):
+	"""Class to use Postgres' CIText column in SQLAlchemy.
+
+	From: https://github.com/mahmoudimus/sqlalchemy-citext
+	"""
+
+	def get_col_spec(self):
+		return 'CITEXT'
+
+	def bind_processor(self, dialect):
+		def process(value):
+			return value
+		return process
+
+	def result_processor(self, dialect, coltype):
+		def process(value):
+			return value
+		return process
+
+
+# Register CIText to SQLAlchemy's Postgres reflection subsystem.
+ischema_names['citext'] = CIText
 
 
 def psycopg_uri(username, password, db_name, host='', port=None):
@@ -39,6 +67,7 @@ def psycopg_uri(username, password, db_name, host='', port=None):
 
 
 def foreign_key_col(col, **kwargs):
+	"""Create a column with a ForeignKey that cascades."""
 	return Column(
 		col.type,
 		ForeignKey(col, ondelete='CASCADE', onupdate='CASCADE'),
@@ -47,6 +76,7 @@ def foreign_key_col(col, **kwargs):
 
 
 def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
+	"""Shorthand for a Column that is a foreign key to a parent."""
 	return Column(
 		col_type,
 		ForeignKey(column, ondelete='CASCADE', onupdate='CASCADE'),
@@ -56,14 +86,14 @@ def parent_key(column, col_type=Integer, nullable=False, index=True, **kwargs):
 		)
 
 
-class Fraction(types.TypeDecorator):
+class Fraction(TypeDecorator):
 	"""Type for storing and retrieving Fractions.
 
 	Currently, this is backed by a Decimal, so some precision may be lost on
 	conversion.
 	"""
 
-	impl = types.Numeric
+	impl = Numeric
 
 	def process_bind_param(self, value, dialect):
 		if value is None:
@@ -78,26 +108,28 @@ class Fraction(types.TypeDecorator):
 		return fractions.Fraction(value).limit_denominator()
 
 
-class UTCDateTime(types.TypeDecorator):
+class UTCDateTime(TypeDecorator):
 	"""Type for storing and retrieving DateTimes as UTC.
 
-	Naive datetimes are assumed to be UTC.
+	Naive datetimes are rejected.
 	The returned value is always a non-naive UTC datetime.
 	"""
 
-	impl = types.TIMESTAMP(timezone=True)
+	impl = DateTime
 
 	def process_bind_param(self, value, dialect):
+		"""Fix inputs."""
 		if value is None:
 			return None
 		if value.tzinfo is None:
-			raise ValueError('Cannot handle naive datetime')
+			raise ValueError
 		return value.astimezone(pytz.utc)
 
 	def process_result_value(self, value, dialect):
+		"""Normalize output."""
 		if value is None:
 			return None
-		return value.astimezone(pytz.utc)
+		return value.replace(tzinfo=pytz.utc)
 
 
 class BaseMixin():
