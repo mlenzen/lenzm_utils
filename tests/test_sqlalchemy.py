@@ -1,18 +1,25 @@
+from datetime import datetime
+
+import pytz
 import pytest
-from sqlalchemy import create_engine, MetaData, Integer
-from sqlalchemy.schema import Column, Table
+from sqlalchemy import create_engine, Integer, Column
+from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy.orm as orm
 
-from lenzm_utils.sqlalchemy import CIText
+from lenzm_utils.sqlalchemy import CIText, UTCDateTime
+
+Base = declarative_base()
 
 
 @pytest.fixture(scope='session')
 def session(request):
 	engine = create_engine('postgresql://test:test@localhost/test')
 	conn = engine.connect()
-	meta.bind = conn
-	meta.drop_all()
-	meta.create_all()
+	Base.metadata.bind = conn
+	Base.metadata.drop_all(engine)
+	Base.metadata.create_all(engine)
+	# meta.drop_all()
+	# meta.create_all()
 
 	transaction = conn.begin()
 	Session = orm.sessionmaker(bind=conn)
@@ -20,7 +27,7 @@ def session(request):
 
 	def teardown():
 		transaction.rollback()
-		meta.drop_all()
+		Base.metadata.drop_all(engine)
 		conn.close()
 		# sess.remove()
 
@@ -28,34 +35,42 @@ def session(request):
 	return sess
 
 
-meta = MetaData()
+class CIKeyObj(Base):
 
-test_table = Table(
-	'test',
-	meta,
-	Column('id', Integer(), primary_key=True),
-	Column('txt', CIText()),
-	)
+	__tablename__ = 'ci_key_obj'
 
-
-class CIKeyObj(object):
-
-	def __init__(self, id_, txt):
-		self.id = id_
-		self.txt = txt
+	id = Column(CIText, primary_key=True)
 
 	def __repr__(self):
-		return "TestObj(%r, %r)" % (self.id, self.txt)
+		return f"CIKeyObj({self.id})"
 
 
-orm.mapper(CIKeyObj, test_table)
+class UTCDateTimeTestObj(Base):
+
+	__tablename__ = 'utc_datetime_obj'
+
+	id = Column(Integer, primary_key=True)
+	ts = Column(UTCDateTime)
 
 
 def test_citext(session):
-	to = CIKeyObj(1, txt='FooFighter')
+	to = CIKeyObj(id='FooFighter')
 	session.add(to)
 	session.commit()
-	row = session.query(CIKeyObj).filter(CIKeyObj.txt == 'foofighter').all()
+	row = session.query(CIKeyObj).filter(CIKeyObj.id == 'foofighter').all()
 	assert len(row) == 1
 	print(row)
+	assert session.query(CIKeyObj).get('fOOfIGHTER')
 	session.close()
+
+
+def test_utc_datetime(session):
+	now = datetime.now().replace(tzinfo=pytz.timezone('America/Chicago'))
+	obj = UTCDateTimeTestObj(ts=now)
+	session.add(obj)
+	session.commit()
+	obj = session.query(UTCDateTimeTestObj).one()
+	assert obj.ts.tzinfo == pytz.utc
+	session.add(UTCDateTimeTestObj(ts=datetime.now()))
+	with pytest.raises(ValueError):
+		session.flush()
