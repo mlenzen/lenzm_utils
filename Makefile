@@ -37,9 +37,13 @@ coverage:
 	$(venv)coverage html
 	# open htmlcov/index.html
 
-.PHONY: publish
-publish: lint testall
+.PHONY: publish-force
+publish-force:
 	git push
 	git push --tags
 	$(venv)python setup.py sdist upload
 	$(venv)python setup.py bdist_wheel upload
+
+
+.PHONY: publish
+publish: lint testall publish-force
