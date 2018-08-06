@@ -6,4 +6,5 @@ ipython
 pytest
 tox
 wheel>=0.23.0
+setuptools
 -e .
