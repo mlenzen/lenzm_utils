@@ -74,3 +74,8 @@ def test_utc_datetime(session):
 	session.add(UTCDateTimeTestObj(ts=datetime.now()))
 	with pytest.raises(ValueError):
 		session.flush()
+
+
+def test_parse_uuid():
+	pass
+	# TODO write parse uuid test

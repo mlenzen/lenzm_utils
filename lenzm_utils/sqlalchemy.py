@@ -6,6 +6,7 @@ import fractions
 import logging
 import os.path
 from typing import Sequence
+import uuid
 
 from flask import abort
 import flask_sqlalchemy
@@ -20,6 +21,7 @@ from sqlalchemy import (
 	Numeric,
 	ForeignKeyConstraint,
 	)
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.dialects.postgresql.base import ischema_names
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.inspection import inspect
@@ -417,6 +419,58 @@ class IntegerPKey():
 			return value
 		else:
 			return super().cast(obj, **kwargs)
+
+	@classmethod
+	def _get_pkey_col(cls):
+		return cls.id
+
+	def __hash__(self):
+		return self.id
+
+	def __eq__(self, other):
+		return self.__class__ == other.__class__ and self.id == other.id
+
+	@classmethod
+	def query_default_order(cls):
+		return cls.query.order_by(cls.id)
+
+
+def parse_uuid(obj) -> uuid.UUID:
+	"""Parse a UUID from obj.
+
+	Raises:
+	    ValueError: If obj cannot be parsed into a UUID
+	    TypeError:
+	"""
+	if isinstance(obj, uuid.UUID):
+		return obj
+	if isinstance(obj, str):
+		return uuid.UUID(obj)
+	if isinstance(obj, (bytes, bytearray)):
+		return uuid.UUID(bytes=obj)
+	if isinstance(obj, tuple):
+		return uuid.UUID(fields=obj)
+	if isinstance(obj, int):
+		return uuid.UUID(int=obj)
+	raise TypeError
+
+
+class UUID4Pkey():
+	"""Mixin for models with a UUID4 'id' as the primary key."""
+
+	id = Column(UUID, primary_key=True, default=uuid.uuid4)
+
+	@classmethod
+	def cast(cls, obj, **kwargs):
+		try:
+			obj_as_uuid = parse_uuid(obj)
+		except (ValueError, TypeError):
+			return super().cast(obj, **kwargs)
+		else:
+			value = cls.query.get(obj_as_uuid)
+			if not value:
+				raise ValueError(f"No {cls} could be found from uuid {obj}")
+			return value
 
 	@classmethod
 	def _get_pkey_col(cls):
