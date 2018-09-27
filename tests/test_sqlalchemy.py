@@ -5,8 +5,9 @@ import pytest
 from sqlalchemy import create_engine, Integer, Column
 from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy.orm as orm
+from uuid import UUID
 
-from lenzm_utils.sqlalchemy import CIText, UTCDateTime
+from lenzm_utils.sqlalchemy import CIText, UTCDateTime, parse_uuid
 
 Base = declarative_base()
 
@@ -77,5 +78,13 @@ def test_utc_datetime(session):
 
 
 def test_parse_uuid():
-	pass
-	# TODO write parse uuid test
+	uu = UUID('b91f0a8a-5895-42e1-9bd7-6263102780f8')
+	assert parse_uuid(uu) == uu
+	assert parse_uuid('b91f0a8a-5895-42e1-9bd7-6263102780f8') == uu
+	assert parse_uuid(b"\xb9\x1f\n\x8aX\x95B\xe1\x9b\xd7bc\x10'\x80\xf8") == uu
+	assert parse_uuid((3105819274, 22677, 17121, 155, 215, 108177612308728)) == uu
+	assert parse_uuid(246068354207821606278207363069176676600) == uu
+	with pytest.raises(TypeError):
+		parse_uuid(None)
+	with pytest.raises(ValueError):
+		parse_uuid('abc')

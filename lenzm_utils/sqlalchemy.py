@@ -440,8 +440,9 @@ def parse_uuid(obj) -> uuid.UUID:
 
 	Raises:
 	    ValueError: If obj cannot be parsed into a UUID
-	    TypeError:
+	    TypeError: If the type of obj isn't known how to parse
 	"""
+	# TODO this would be more pythonic with try except instead of checking types
 	if isinstance(obj, uuid.UUID):
 		return obj
 	if isinstance(obj, str):
