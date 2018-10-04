@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 import pytest
 
@@ -6,6 +6,7 @@ from lenzm_utils.dates import (
 	workday_diff,
 	week_start,
 	parse_date_missing_zero_padding,
+	parse_duration_iso,
 	Month,
 	week_start,
 	past_complete_weeks,
@@ -236,3 +237,41 @@ def test_week_start():
 def test_past_complete_weeks():
 	today = date(2016, 2, 9)
 	assert past_complete_weeks(1, today) == (date(2016, 1, 31), date(2016, 2, 7))
+
+
+class Test_parse_duration:
+
+	def test_full(self):
+		s = 'P1Y2M3W4DT5H6M7.8S'
+		td = timedelta(
+			days=1*365 + 2*30 +3*7 + 4,
+			seconds=5*60*60 + 6*60 + 7,
+			microseconds=1_000_000 * 8 / 10,
+			)
+		assert parse_duration_iso(s) == td
+
+	def test_out_of_order(self):
+		with pytest.raises(ValueError):
+			parse_duration_iso('P5D2M')
+		with pytest.raises(ValueError):
+			parse_duration_iso('PT5M3H')
+
+	def test_minute_month(self):
+		assert parse_duration_iso('P1M') == timedelta(days=30)
+		assert parse_duration_iso('PT1M') == timedelta(minutes=1)
+
+	def time_missing_t(self):
+		with pytest.raises(ValueError):
+			parse_duration_iso('P1H5M')
+
+	def test_parse_float(self):
+		assert parse_duration_iso('P1.5D') == timedelta(hours=36)
+
+	def test_parse_float_comma(self):
+		assert parse_duration_iso('P1,5D') == timedelta(hours=36)
+
+	def test_multiple_floats(self):
+		with pytest.raises(ValueError):
+			parse_duration_iso('P1.5M1.5D')
+		with pytest.raises(ValueError):
+			parse_duration_iso('P1.5DT1,5H')
