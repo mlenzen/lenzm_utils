@@ -459,7 +459,7 @@ def parse_uuid(obj) -> uuid.UUID:
 class UUID4Pkey():
 	"""Mixin for models with a UUID4 'id' as the primary key."""
 
-	id = Column(UUID, primary_key=True, default=uuid.uuid4)
+	id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
 	@classmethod
 	def cast(cls, obj, **kwargs):
@@ -478,7 +478,7 @@ class UUID4Pkey():
 		return cls.id
 
 	def __hash__(self):
-		return self.id
+		return hash(self.__class__, self.id)
 
 	def __eq__(self, other):
 		return self.__class__ == other.__class__ and self.id == other.id
