@@ -93,7 +93,7 @@ def bootstrap_field(
 		btn_color: str = 'default',
 		icon: Union[bool, str] = False,
 		**kwargs
-) -> Markup:
+		) -> Markup:
 	"""Render a WTForms Field with Bootstrap markup.
 
 	Args:

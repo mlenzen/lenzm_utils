@@ -3,12 +3,12 @@ import bisect
 import calendar
 from contextlib import suppress
 from datetime import date, datetime, timedelta
-import string
 from typing import Tuple
 
 from collections_extended import setlist
 from .comparable_mixin import ComparableSameClassMixin
 
+from ._duration import parse_duration_iso  # noqa
 
 (MON, TUE, WED, THU, FRI, SAT, SUN) = range(7)
 weekends = (SAT, SUN)
@@ -273,87 +273,3 @@ def parse_date_missing_zero_padding(
 		if year <= min_year:
 			year += 100
 	return date(year, month, day)
-
-
-DURATION_DESIGNATORS_DAYS = {
-	'Y': timedelta(days=365),
-	'M': timedelta(days=30),
-	'W': timedelta(days=7),
-	'D': timedelta(days=1),
-	}
-DURATION_DESIGNATORS_TIME = {
-	'H': timedelta(hours=1),
-	'M': timedelta(minutes=1),
-	'S': timedelta(seconds=1),
-	}
-DURATION_AMOUNT_CHARS = frozenset(string.digits + '.,')
-
-def parse_duration_iso(s: str) -> timedelta:
-	"""Parse an ISO 8601 duration string to a timedelta.
-
-	This is inexact because years and months aren't specific amounts of time.
-
-	PnYnMnDTnHnMnS where the 'n's are integer amounts.
-
-	https://www.wikiwand.com/en/ISO_8601#/Durations
-
-	Raises:
-		ValueError: If the string is malformed.
-	"""
-	if not s.startswith('P'):
-		raise ValueError('Duration string must start with a P')
-	if len(s) < 3:
-		raise ValueError('Duration string must be at least 3 characters long')
-	if 'T' in s:
-		days_string, time_string = s[1:].split('T')
-	else:
-		days_string, time_string = s[1:], ''
-	amount_string = ''
-	running_total = timedelta(0)
-	last_designator = None
-	days_designators = 'YMWD'
-	time_designators = 'HMS'
-	for char in days_string:
-		if char in DURATION_AMOUNT_CHARS:
-			amount_string += char
-		else:
-			if not amount_string:
-				raise ValueError('Empty amount')
-			# Is this the final value?
-			if not time_string and char == days_string[-1]:
-				amount = float(amount_string.replace(',', '.'))
-			else:
-				amount = int(amount_string)
-			try:
-				designator_value = DURATION_DESIGNATORS_DAYS[char]
-			except KeyError:
-				raise ValueError('Unknown designator "%s"' % char)
-			if last_designator and days_designators.index(char) <= days_designators.index(last_designator):
-				raise ValueError('Designators appear out of order, like minutes before hours')
-			running_total = running_total + (designator_value * amount)
-			amount_string = ''
-			last_designator = char
-		print(running_total)
-	amount_string = ''
-	last_designator = None
-	for char in time_string:
-		if char in DURATION_AMOUNT_CHARS:
-			amount_string += char
-		else:
-			if not amount_string:
-				raise ValueError('Empty amount')
-			# Is this the final value?
-			if char == time_string[-1]:
-				amount = float(amount_string.replace(',', '.'))
-			else:
-				amount = int(amount_string)
-			try:
-				designator_value = DURATION_DESIGNATORS_TIME[char]
-			except KeyError:
-				raise ValueError('Unknown designator "%s"' % char)
-			if last_designator and time_designators.index(char) <= time_designators.index(last_designator):
-				raise ValueError('Designators appear out of order, like minutes before hours')
-			running_total = running_total + (designator_value * amount)
-			amount_string = ''
-			last_designator = char
-	return running_total
