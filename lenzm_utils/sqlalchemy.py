@@ -225,8 +225,9 @@ class BaseMixin():
 
 	@classmethod
 	def query_default_order(cls):
-		"""Return a class query with a default order."""
-		raise NotImplementedError
+		"""Return a class query with a default (stable) order."""
+		primary_key_cols = inspect(cls).primary_key
+		cls.query.order_by(*primary_key_cols)
 
 	@classmethod
 	def _get_pkey_col(cls):
