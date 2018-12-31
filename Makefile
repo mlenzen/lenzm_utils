@@ -30,6 +30,10 @@ clean:
 lint:
 	$(venv)flake8 --statistics --count
 
+.PHONY: mypy
+mypy:
+	$(venv)mypy --ignore-missing-imports lenzm_utils
+
 .PHONY: coverage
 coverage:
 	$(venv)coverage run --source lenzm_utils setup.py test

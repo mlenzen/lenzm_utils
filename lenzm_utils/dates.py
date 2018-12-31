@@ -3,47 +3,60 @@ import bisect
 import calendar
 from contextlib import suppress
 from datetime import date, datetime, timedelta
-from typing import Tuple
+from enum import IntEnum
+from typing import Iterable, Optional, Tuple, Generator, overload
 
 from collections_extended import setlist
 from .comparable_mixin import ComparableSameClassMixin
 
 from ._duration import parse_duration_iso  # noqa
 
-(MON, TUE, WED, THU, FRI, SAT, SUN) = range(7)
-weekends = (SAT, SUN)
+
+class Day(IntEnum):
+	MON = 0
+	TUE = 1
+	WED = 2
+	THU = 3
+	FRI = 4
+	SAT = 5
+	SUN = 6
 
 
-def week_start(d: datetime, starts_on=SUN) -> date:
+WEEKENDS = (Day.SAT, Day.SUN)
+WEEKDAYS = (Day.MON, Day.TUE, Day.WED, Day.THU, Day.FRI)
+
+
+def week_start(
+	d: date,
+	starts_on: Day = Day.SUN,
+	) -> date:
 	"""Return the first day of the week for the passed date.
 
 	Args:
-		d (datetime.datetime or datetime.date): When to get the week start for.
+		d: When to get the week start for.
 		starts_on: The day of the week that the week starts on.
 
 	Returns:
-		A datetime.date object for the first day of the week containing d.
+		A the first day of the week containing d.
 	"""
 	if isinstance(d, datetime):
 		d = d.date()
-	else:
-		assert isinstance(d, date)
 	days = (d.weekday() + 7 - starts_on) % 7
 	d -= timedelta(days=days)
 	return d
 
 
 def workday_diff(  # noqa no way to make this simpler
-	start_date: datetime,
-	end_date: datetime,
-	holidays=None,
-	) -> float:
+		start_date: datetime,
+		end_date: datetime,
+		holidays: Iterable[date] = None,
+) -> float:
 	"""Calculate the number of working days between two dates."""
-	assert isinstance(start_date, datetime)
-	assert isinstance(end_date, datetime)
-	holidays = setlist(sorted(holidays or []))
+	# assert isinstance(start_date, datetime)
+	# assert isinstance(end_date, datetime)
+	sorted_holidays = setlist(sorted(holidays or []))
 	if end_date < start_date:
-		return -workday_diff(end_date, start_date, holidays=holidays)
+		return -workday_diff(end_date, start_date, holidays=sorted_holidays)
 	elif end_date == start_date:
 		return 0
 	# first full day is inclusive
@@ -55,39 +68,45 @@ def workday_diff(  # noqa no way to make this simpler
 		full_weeks, extra_days = divmod(num_full_days, 7)
 		full_weeks = int(full_weeks)
 		extra_days = int(extra_days)
-		num_full_days -= full_weeks * len(weekends)
+		num_full_days -= full_weeks * len(WEEKENDS)
 		# subtract out any working days that fall in the 'shortened week'
 		for d in range(extra_days):
-			if (first_full_day + timedelta(d)).weekday() in weekends:
+			if (first_full_day + timedelta(d)).weekday() in WEEKENDS:
 				num_full_days -= 1
 		# subtract out any holidays
-		start_index = bisect.bisect_left(holidays, start_date.date())
-		stop_index = bisect.bisect_right(holidays, end_date.date())
-		for d in holidays[start_index:stop_index]:
-			if d.weekday() not in weekends and first_full_day <= d < last_full_day:
+		start_index = bisect.bisect_left(sorted_holidays, first_full_day)
+		stop_index = bisect.bisect_right(sorted_holidays, last_full_day)
+		for holiday in sorted_holidays[start_index:stop_index]:
+			if holiday.weekday() not in WEEKENDS:
 				num_full_days -= 1
 	else:
 		num_full_days = 0
 
-	# Calculate partial dats
-	def exclude_day(d):
-		return d.weekday() in weekends or d in holidays
+	# Calculate partial days
+	def should_exclude_day(d: date) -> bool:
+		return d.weekday() in WEEKENDS or d in sorted_holidays
 
 	partial_days = 0.0
 	if end_date.date() == start_date.date():
-		if not exclude_day(start_date):
+		if not should_exclude_day(start_date):
 			partial_days = (end_date - start_date) / timedelta(days=1)
 	else:
-		if not exclude_day(start_date):
+		if not should_exclude_day(start_date):
 			start_date_eod = midnight(first_full_day)
 			partial_days += (start_date_eod - start_date) / timedelta(days=1)
-		if not exclude_day(end_date):
+		if not should_exclude_day(end_date):
 			end_date_eod = midnight(last_full_day)
 			partial_days += (end_date - end_date_eod) / timedelta(days=1)
 	return partial_days + num_full_days
 
 
-def midnight(d: date) -> datetime:
+@overload
+def midnight(d: None) -> None: ...
+
+@overload
+def midnight(d: date) -> datetime: ...
+
+def midnight(d):
 	"""Given a datetime.date, return a datetime.datetime of midnight."""
 	if d is None:
 		return None
@@ -96,13 +115,15 @@ def midnight(d: date) -> datetime:
 
 def past_complete_weeks(
 	num_weeks: int,
-	today=None,
-	week_starts_on=SUN,
-	) -> Tuple[datetime, datetime]:
+	today: date = None,
+	week_starts_on: Day = Day.SUN,
+	) -> Tuple[date, date]:
 	"""Return a tuple marking the beginning and end of the past number of weeks.
 
 	Args:
-		num_weeks (int): The number of weeks
+		num_weeks: The number of weeks
+		today: Date to use as today
+		week_starts_on: What day starts the week
 	Returns:
 		beg (datetime), end (datetime)
 	"""
@@ -116,41 +137,41 @@ def past_complete_weeks(
 
 class Month(ComparableSameClassMixin):
 
-	def __init__(self, year, month):
+	def __init__(self, year: int, month: int):
 		if not 0 < month <= 12:
 			raise ValueError('Invalid month')
 		self.year = int(year)
 		self.month = int(month)
 
-	def first(self):
+	def first(self) -> date:
 		"""Return a datetime.date object for the first of the month."""
 		return self.date(1)
 
-	def first_datetime(self):
+	def first_datetime(self) -> datetime:
 		"""Return a datetime.date object for the first of the month."""
 		return self.datetime(1)
 
-	def first_string(self):
+	def first_string(self) -> str:
 		return self.first().strftime('%m/%d/%Y')
 
-	def mid(self):
+	def mid(self) -> date:
 		"""Return a datetime.date object for the 15th of the month."""
 		return self.date(15)
 
-	def mid_datetime(self):
+	def mid_datetime(self) -> datetime:
 		"""Return a datetime.date object for the 15th of the month."""
-		return datetime(self.year, self.month, 15)
+		return self.datetime(15)
 
-	def mid_string(self):
+	def mid_string(self) -> str:
 		return self.mid().strftime('%m/%d/%Y')
 
-	def last(self):
-		return date(self.year, self.month, self.num_days())
+	def last(self) -> date:
+		return self.date(self.num_days())
 
-	def num_days(self):
+	def num_days(self) -> int:
 		return calendar.monthrange(self.year, self.month)[1]
 
-	def date(self, day):
+	def date(self, day: int) -> date:
 		"""Return a date for the day of the month.
 
 		num can be a negative number to count back from the end of the month.
@@ -160,10 +181,10 @@ class Month(ComparableSameClassMixin):
 			day += self.num_days() + 1
 		return date(self.year, self.month, day)
 
-	def datetime(self, day, *args, **kwargs):
+	def datetime(self, day: int, *args, **kwargs) -> datetime:
 		return datetime(self.year, self.month, day, *args, **kwargs)
 
-	def pace(self, d=None):
+	def pace(self, d: datetime = None) -> float:
 		"""Return how far through this month d is.
 
 		If d isn't passed use datetime.now()
@@ -185,7 +206,7 @@ class Month(ComparableSameClassMixin):
 			return Month(self.year, self.month + 1)
 
 	@classmethod
-	def from_date(cls, d):
+	def from_date(cls, d: Optional[date]):
 		"""Create a Month from a date(time) object."""
 		if not d:
 			return None
@@ -214,7 +235,7 @@ class Month(ComparableSameClassMixin):
 			yield month
 			month = month.next()
 
-	def days(self):
+	def days(self) -> Generator[date]:
 		"""Generate the dates in this month."""
 		for i in range(self.num_days()):
 			yield self.date(i + 1)
@@ -222,7 +243,7 @@ class Month(ComparableSameClassMixin):
 
 # Parsing
 
-def parse_iso_date_with_colon(date_string):
+def parse_iso_date_with_colon(date_string: str) -> datetime:
 	"""Parse a date in ISO format with a colon in the timezone.
 
 	For example: 2014-05-01T15:08:00-07:00
@@ -243,20 +264,20 @@ def parse_iso_date_with_colon(date_string):
 
 def parse_date_missing_zero_padding(
 	date_string: str,
-	sep='/',
-	order='mdy',
-	min_year=2000,
+	sep: str = '/',
+	order: str = 'mdy',
+	min_year: int = 2000,
 	) -> date:
-	"""Parse dates without zero padding like 3/1/14.
+	"""Parse dates without zero padding, e.g. 3/1/14.
 
 	If min_year is set, then the year string can be two digits and is parsed as
 	the year >= min_year with the last two digits as the passed year.
 
 	Args:
-		date_string (str): String to parse
-		sep (str): The separator between month, day and year
-		order (str): 'm', 'd' and 'y' indicating the order the month, day and year
-		min_year (str): For two digit years, use the next year after min_year
+		date_string: String to parse
+		sep: The separator between month, day and year
+		order: 'm', 'd' and 'y' indicating the order the month, day and year
+		min_year: For two digit years, use the next year after min_year
 	"""
 	if len(order) != 3 or set(order) != set('mdy'):
 		raise ValueError('Invalid order')

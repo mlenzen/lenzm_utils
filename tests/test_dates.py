@@ -10,7 +10,7 @@ from lenzm_utils.dates import (
 	Month,
 	week_start,
 	past_complete_weeks,
-	MON,
+	Day,
 	)
 
 
@@ -131,25 +131,25 @@ class TestWeekStart:
 class TestWeekStartMon:
 
 	def test_sunday(self):
-		assert week_start(datetime(2014, 10, 12, 0, 0, 0), MON) == date(2014, 10, 6)
+		assert week_start(datetime(2014, 10, 12, 0, 0, 0), Day.MON) == date(2014, 10, 6)
 
 	def test_monday(self):
-		assert week_start(datetime(2014, 10, 13, 1, 1, 1), MON) == date(2014, 10, 13)
+		assert week_start(datetime(2014, 10, 13, 1, 1, 1), Day.MON) == date(2014, 10, 13)
 
 	def test_tuesday(self):
-		assert week_start(datetime(2014, 10, 14, 1, 1, 1), MON) == date(2014, 10, 13)
+		assert week_start(datetime(2014, 10, 14, 1, 1, 1), Day.MON) == date(2014, 10, 13)
 
 	def test_wednesday(self):
-		assert week_start(datetime(2014, 10, 15, 1, 1, 1), MON) == date(2014, 10, 13)
+		assert week_start(datetime(2014, 10, 15, 1, 1, 1), Day.MON) == date(2014, 10, 13)
 
 	def test_thursday(self):
-		assert week_start(datetime(2014, 10, 16, 1, 1, 1), MON) == date(2014, 10, 13)
+		assert week_start(datetime(2014, 10, 16, 1, 1, 1), Day.MON) == date(2014, 10, 13)
 
 	def test_friday(self):
-		assert week_start(datetime(2014, 10, 17, 1, 1, 1), MON) == date(2014, 10, 13)
+		assert week_start(datetime(2014, 10, 17, 1, 1, 1), Day.MON) == date(2014, 10, 13)
 
 	def test_saturday(self):
-		assert week_start(datetime(2014, 10, 18, 23, 59, 59), MON) == date(2014, 10, 13)
+		assert week_start(datetime(2014, 10, 18, 23, 59, 59), Day.MON) == date(2014, 10, 13)
 
 
 class Test_parse_date_missing_zero_padding:

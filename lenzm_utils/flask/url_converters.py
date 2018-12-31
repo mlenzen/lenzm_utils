@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import List, Iterable
+from typing import List, Iterable, Type
 from uuid import UUID
 
 from werkzeug.routing import BaseConverter, ValidationError
@@ -20,7 +20,7 @@ class DateConverter(BaseConverter):
 		return d.isoformat()
 
 
-def ListConverter(char: str) -> type(BaseConverter):
+def ListConverter(char: str) -> Type[BaseConverter]:
 	"""Factory to create a Converter that turns delimited strings into lists."""
 
 	class _ListConverter(BaseConverter):
