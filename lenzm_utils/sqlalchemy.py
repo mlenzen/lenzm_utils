@@ -479,7 +479,7 @@ class UUID4Pkey():
 		return cls.id
 
 	def __hash__(self):
-		return hash(self.__class__, self.id)
+		return hash((self.__class__, self.id))
 
 	def __eq__(self, other):
 		return self.__class__ == other.__class__ and self.id == other.id
