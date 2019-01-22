@@ -235,7 +235,7 @@ class Month(ComparableSameClassMixin):
 			yield month
 			month = month.next()
 
-	def days(self) -> Generator[date]:
+	def days(self) -> Generator[date, None, None]:
 		"""Generate the dates in this month."""
 		for i in range(self.num_days()):
 			yield self.date(i + 1)
