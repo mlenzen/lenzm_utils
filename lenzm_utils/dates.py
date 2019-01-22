@@ -101,12 +101,10 @@ def workday_diff(  # noqa no way to make this simpler
 
 
 @overload
-def midnight(d: None) -> None: ...
-
-@overload
-def midnight(d: date) -> datetime: ...
-
-def midnight(d):
+def midnight(d: None) -> None: ...  # noqa
+@overload  # noqa
+def midnight(d: date) -> datetime: ...  # noqa
+def midnight(d):  # noqa
 	"""Given a datetime.date, return a datetime.datetime of midnight."""
 	if d is None:
 		return None

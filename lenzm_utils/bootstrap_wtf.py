@@ -83,17 +83,17 @@ def _col(text: str, width: int, size: str = 'sm', offset: int = None) -> str:
 
 
 def bootstrap_field(
-		field: Field,
-		form_group: bool = True,
-		placeholder: Union[bool, str] = True,
-		label: bool = True,
-		errors: bool = True,
-		horizontal: bool = False,
-		inline: bool = False,
-		btn_color: str = 'default',
-		icon: Union[bool, str] = False,
-		**kwargs
-		) -> Markup:
+	field: Field,
+	form_group: bool = True,
+	placeholder: Union[bool, str] = True,
+	label: bool = True,
+	errors: bool = True,
+	horizontal: bool = False,
+	inline: bool = False,
+	btn_color: str = 'default',
+	icon: Union[bool, str] = False,
+	**kwargs
+	) -> Markup:
 	"""Render a WTForms Field with Bootstrap markup.
 
 	Args:
@@ -164,11 +164,11 @@ def bootstrap_field(
 
 
 def _insert_icon(
-		html_str: str,
-		field: Field,
-		icon: Union[str, bool, None],
-		is_text_field: bool,
-) -> str:
+	html_str: str,
+	field: Field,
+	icon: Union[str, bool, None],
+	is_text_field: bool,
+	) -> str:
 	"""Insert an icon into a bootstrap input field."""
 	if icon and is_text_field:
 		if icon is True:
@@ -216,21 +216,21 @@ def _gen_fields(obj: Union[Form, Sequence[Field], FieldList]):
 
 
 def bootstrap_form(
-		form: Form,
-		action: str = None,
-		*,
-		method: str = 'POST',
-		form_groups: bool = True,
-		placeholders: bool = True,
-		labels: bool = True,
-		errors: bool = True,
-		horizontal: bool = False,
-		inline: bool = False,
-		icons: bool = True,
-		id_: str = None,
-		class_: str = None,
-		field_args: Dict[str, Dict] = None,
-) -> Markup:
+	form: Form,
+	action: str = None,
+	*,
+	method: str = 'POST',
+	form_groups: bool = True,
+	placeholders: bool = True,
+	labels: bool = True,
+	errors: bool = True,
+	horizontal: bool = False,
+	inline: bool = False,
+	icons: bool = True,
+	id_: str = None,
+	class_: str = None,
+	field_args: Dict[str, Dict] = None,
+	) -> Markup:
 	"""Render a WTForms Form with Bootstrap markup.
 
 	Args:

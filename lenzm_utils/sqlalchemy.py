@@ -207,7 +207,7 @@ class BaseMixin():
 		elif isinstance(obj, cls):
 			return obj
 		else:
-			raise TypeError(f'Cannnot cast an object of {type(obj)} to {cls}')
+			raise TypeError(f'Cannot cast an object of {type(obj)} to {cls}')
 
 	@classmethod
 	def _repr_class_template(cls):
