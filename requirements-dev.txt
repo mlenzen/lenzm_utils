@@ -9,4 +9,4 @@ mypy
 wheel>=0.23.0
 setuptools
 psycopg2-binary
--e .
+-e .[all]
