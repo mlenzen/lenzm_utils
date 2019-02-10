@@ -28,10 +28,13 @@ def url_update_endpoint_args(endpoint, **kwargs):
 		else:
 			args[arg] = value
 	# Now set any individual args to the object instead of a list of len 1
+	# TODO Issue #4
+	#  this is broken if it supposed to be a list of Iterables (e.g. strings)
 	args = args.to_dict(flat=False)
 	for key in set(args.keys()):
-		if len(args[key]) == 1:
-			args[key] = args[key][0]
+		values = args[key]
+		if len(values) == 1:
+			args[key] = values[0]
 	return url_for(endpoint, **args)
 
 
