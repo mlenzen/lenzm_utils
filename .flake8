@@ -1,5 +1,5 @@
 [flake8]
-ignore = W191,D103,D105,D107,D203,E711,N805
+ignore = W191,D103,D105,D107,D203,E126,E711,N805
 max-complexity = 10
 max-line-length = 80
 hang-closing = True

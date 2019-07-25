@@ -43,7 +43,7 @@ setup(
 			'pytz',
 			'chardet',
 			],
-	},
+		},
 	tests_require=[
 		'pytest',
 		'psycopg2-binary',

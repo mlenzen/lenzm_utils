@@ -3,6 +3,7 @@ from datetime import datetime
 import pytz
 import pytest
 from sqlalchemy import create_engine, Integer, Column
+from sqlalchemy.exc import StatementError
 from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy.orm as orm
 from uuid import UUID
@@ -73,7 +74,7 @@ def test_utc_datetime(session):
 	obj = session.query(UTCDateTimeTestObj).one()
 	assert obj.ts.tzinfo == pytz.utc
 	session.add(UTCDateTimeTestObj(ts=datetime.now()))
-	with pytest.raises(ValueError):
+	with pytest.raises(StatementError):
 		session.flush()
 
 
