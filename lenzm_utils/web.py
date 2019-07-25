@@ -1,4 +1,5 @@
 import enum
+from typing import Mapping, Any
 
 
 class HTTPStatus(enum.IntEnum):
@@ -68,3 +69,15 @@ class HTTPStatus(enum.IntEnum):
 	LOOP_DETECTED = 508
 	NOT_EXTENDED = 510
 	NETWORK_AUTHENTICATION_REQUIRED = 511
+
+
+def space_join_cond(mapping: Mapping[str, Any]) -> str:
+	"""Return a space joined string of the mapping's keys based on conditions.
+
+	This is primarily used for constructing class strings.
+
+	Args:
+		mapping (dict): A mapping from potential class names to conditions if
+			that class should be included.
+	"""
+	return ' '.join(name for name, condition in mapping.items() if condition)
