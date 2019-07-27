@@ -89,6 +89,5 @@ def fa_icon(
 			attr_strings.append(k)
 		else:
 			attr_strings.append(f'{k}="{v}"')
-	print(attr_strings)
 	attr_string = ' '.join(attr_strings)
 	return Markup(f'<span {attr_string}></span>')
