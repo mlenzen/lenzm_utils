@@ -169,8 +169,8 @@ class BaseMixin():
 			abort(404)
 
 	@classmethod
-	def create(cls, **kwargs):
-		obj = cls(**kwargs)
+	def create(cls, *args, **kwargs):
+		obj = cls(*args, **kwargs)
 		cls.query.session.add(obj)
 		return obj
 
