@@ -50,4 +50,7 @@ publish-force:
 
 
 .PHONY: publish
-publish: lint testall publish-force
+publish: checks publish-force
+
+.PHONY: checks
+checks: lint testall
