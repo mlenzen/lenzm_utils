@@ -54,3 +54,4 @@ publish: checks publish-force
 
 .PHONY: checks
 checks: lint testall
+#checks: lint testall mypy

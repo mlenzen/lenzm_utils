@@ -27,7 +27,11 @@ Getting Started
 Installation
 ============
 
-``pip install git+https://github.com/mlenzen/lenzm_utils.git#egg=lenzm_utils``
+	pip install lenzm_utils
+
+Or for the bleeding edge:
+
+	pip install git+https://github.com/mlenzen/lenzm_utils.git#egg=lenzm_utils
 
 Usage
 =====
@@ -53,6 +57,7 @@ On Ubuntu:
 
 
 :Author: Michael Lenzen
-:Copyright: 2018 Michael Lenzen
+:Copyright: © 2020 Michael Lenzen
 :License: MIT
 :GitHub: https://github.com/mlenzen/lenzm_utils
+:PyPI: https://pypi.org/project/lenzm_utils/
