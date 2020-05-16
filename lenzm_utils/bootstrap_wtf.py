@@ -3,21 +3,21 @@
 Inspired by https://github.com/carlnewton/bootstrap-wtf
 
 TODO:
-* Don't depend on glyphicons. Maybe take an option for glyphicons, fontawesome,
-	or none? We just need it for the close icon. We could fall back on an X.
-	Icons depend on FontAwesome, should we just assume that?
-* Help text aria-describedby
-	https://getbootstrap.com/docs/3.3/css/#forms-help-text
-* Disabled & Readonly
-	https://getbootstrap.com/docs/3.3/css/#forms-control-disabled
-	https://getbootstrap.com/docs/3.3/css/#forms-control-readonly
-* Check types using inheritance instead of checking type names
-* Rename TEXT_FIELD_TYPES to reflect that it is checking
-	textual <input>, <textarea>, and <select> not just text fields
-* Add support for static control "fields"
-	https://getbootstrap.com/docs/3.3/css/#forms-controls-static
+	* Don't depend on glyphicons. Maybe take an option for glyphicons,
+		fontawesome, or none? We just need it for the close icon. We could fall
+		back on an 'X'. Icons depend on FontAwesome, should we just assume that?
+	* Help text aria-describedby
+		https://getbootstrap.com/docs/3.3/css/#forms-help-text
+	* Disabled & Readonly
+		https://getbootstrap.com/docs/3.3/css/#forms-control-disabled
+		https://getbootstrap.com/docs/3.3/css/#forms-control-readonly
+	* Check types using inheritance instead of checking type names
+	* Rename TEXT_FIELD_TYPES to reflect that it is checking
+		textual <input>, <textarea>, and <select> not just text fields
+	* Add support for static control "fields"
+		https://getbootstrap.com/docs/3.3/css/#forms-controls-static
 """
-from typing import Dict, Sequence, Union, Mapping, Any, Optional
+from typing import Any, Dict, Generator, Mapping, Optional, Sequence, Union
 
 from flask import Markup
 from wtforms import Form, Field, FieldList, HiddenField
@@ -73,13 +73,13 @@ def _space_join_cond(names_conditions: Mapping[Optional[str], Any]) -> str:
 	return ' '.join(k for k, v in names_conditions.items() if (k and v))
 
 
-def _col(text: str, width: int, size: str = 'sm', offset: int = None) -> str:
+def _col(text: str, width: int, size: str = 'sm', offset: int = None) -> Markup:
 	"""Wrap text in a column with width."""
 	classes = _space_join_cond({
 		f'col-{size}-{width}': True,
 		f'col-{size}-offset-{offset}': offset,
 		})
-	return f'<div class="{classes}">{text}</div>'
+	return Markup(f'<div class="{classes}">{text}</div>')
 
 
 def bootstrap_field(
@@ -120,7 +120,7 @@ def bootstrap_field(
 		})
 	if placeholder is True and field.type in TEXT_FIELD_TYPES:
 		placeholder = 'Enter %s' % field.label.text
-	html_str = field(
+	html_str: Markup = field(
 		class_=field_classes,
 		placeholder=placeholder,
 		**kwargs
@@ -132,7 +132,7 @@ def bootstrap_field(
 	if horizontal and field.errors:
 		html_str += ERROR_ICON
 	if field.type == 'BooleanField':
-		html_str = (
+		html_str = Markup(
 			f'<div class="checkbox"><label>{html_str} {field.label.text}'
 			'</label></div>'
 			)
@@ -155,7 +155,7 @@ def bootstrap_field(
 			'has-error has-feedback': field.errors,
 			'required': field.flags.required,
 			})
-		html_str = f'<div class="{form_group_classes}">{html_str}</div>'
+		html_str = Markup(f'<div class="{form_group_classes}">{html_str}</div>')
 
 	html_str += _field_description(field, horizontal)
 	html_str += _field_errors(field, errors, horizontal)
@@ -164,33 +164,33 @@ def bootstrap_field(
 
 
 def _insert_icon(
-	html_str: str,
+	html_str: Markup,
 	field: Field,
 	icon: Union[str, bool, None],
 	is_text_field: bool,
-	) -> str:
+	) -> Markup:
 	"""Insert an icon into a bootstrap input field."""
 	if icon and is_text_field:
 		if icon is True:
 			icon = FIELD_TYPE_ICONS.get(field.type)
 		if icon:
-			html_str = (
+			html_str = Markup(
 				f'<div class="input-group"><span class="input-group-addon">'
 				f'{icon}</span>{html_str}</div>'
 				)
 	return html_str
 
 
-def _field_description(field, horizontal):
+def _field_description(field: Field, horizontal: bool) -> Markup:
 	description_html = ''
 	if field.description:
 		description_html = f'<p class ="help-block">{field.description}</p>'
 		if horizontal:
 			description_html = _col(description_html, 10, offset=2)
-	return description_html
+	return Markup(description_html)
 
 
-def _field_errors(field, errors, horizontal):
+def _field_errors(field: Field, errors: bool, horizontal: bool) -> Markup:
 	error_html = ''
 	if field.errors and errors:
 		if len(field.errors) == 1:
@@ -203,10 +203,12 @@ def _field_errors(field, errors, horizontal):
 			error_html = f'<ul>{error_html}</ul>'
 		if horizontal:
 			error_html = _col(error_html, 10, offset=2)
-	return error_html
+	return Markup(error_html)
 
 
-def _gen_fields(obj: Union[Form, Sequence[Field], FieldList]):
+def _gen_fields(
+		obj: Union[Form, Sequence[Field], FieldList],
+		) -> Generator[Field, None, None]:
 	"""Recursively generate all of the fields in obj."""
 	for field in obj:
 		if field.type == 'FieldList':
