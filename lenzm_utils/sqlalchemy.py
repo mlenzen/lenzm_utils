@@ -1,4 +1,5 @@
 """Utils for working with SQLAlchemy."""
+from abc import ABCMeta, abstractmethod
 import csv
 from contextlib import suppress
 from decimal import Decimal
@@ -8,8 +9,6 @@ import os.path
 from typing import Sequence
 import uuid
 
-from flask import abort
-import flask_sqlalchemy
 import pytz
 from sqlalchemy import (
 	Column,
@@ -25,7 +24,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.dialects.postgresql.base import ischema_names
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.inspection import inspect
-from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
+from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.collections import (
 	InstrumentedList,
 	InstrumentedSet,
@@ -34,7 +33,6 @@ from sqlalchemy.orm.collections import (
 from sqlalchemy.types import Concatenable, UserDefinedType
 
 logger = logging.getLogger(__name__)
-db = flask_sqlalchemy.SQLAlchemy()
 
 
 class CIText(Concatenable, UserDefinedType):
@@ -138,7 +136,7 @@ class UTCDateTime(TypeDecorator):
 		return value.replace(tzinfo=pytz.utc)
 
 
-class BaseMixin():
+class BaseMixin(metaclass=ABCMeta):
 	# Build table args using inheritance
 
 	_table_args = ()
@@ -159,14 +157,6 @@ class BaseMixin():
 	def find_one(cls, **kwargs):
 		"""Query this table for a single row matching kwargs filters."""
 		return cls.query.filter_by(**kwargs).one()
-
-	@classmethod
-	def find_one_or_404(cls, **kwargs):
-		"""Query this table for a single row, flask.abort(404) if not found."""
-		try:
-			cls.find_one(**kwargs)
-		except (NoResultFound, MultipleResultsFound):
-			abort(404)
 
 	@classmethod
 	def create(cls, *args, **kwargs):
@@ -375,7 +365,8 @@ class BaseMixin():
 		# http://stackoverflow.com/questions/25694234/bulk-update-in-sqlalchemy-core-using-where
 		# db.session.bulk_insert_mappings(cls, reader)
 		rows = list(reader)
-		db.engine.execute(cls.__table__.insert(), rows)
+		engine = cls.query.session.get_bind()
+		engine.execute(cls.__table__.insert(), rows)
 
 	@classmethod
 	def merge_from_file(cls, infile, io_wrapper=None):
@@ -406,7 +397,30 @@ class BaseMixin():
 			writer.writerow(obj.__dict__)
 
 
-class IntegerPKey():
+class IDPKey(metaclass=ABCMeta):
+	"""Base class for Mixins with a primary key named id."""
+
+	@abstractmethod
+	@property
+	def id(self):
+		raise NotImplementedError
+
+	@classmethod
+	def _get_pkey_col(cls):
+		return cls.id
+
+	def __hash__(self):
+		return hash(self.id)
+
+	def __eq__(self, other):
+		return self.__class__ == other.__class__ and self.id == other.id
+
+	@classmethod
+	def query_default_order(cls):
+		return cls.query.order_by(cls.id)
+
+
+class IntegerPKey(IDPKey):
 	"""Mixin for models with an integer 'id' as the primary key."""
 
 	id = Column(Integer, primary_key=True)
@@ -420,20 +434,6 @@ class IntegerPKey():
 			return value
 		else:
 			return super().cast(obj, **kwargs)
-
-	@classmethod
-	def _get_pkey_col(cls):
-		return cls.id
-
-	def __hash__(self):
-		return self.id
-
-	def __eq__(self, other):
-		return self.__class__ == other.__class__ and self.id == other.id
-
-	@classmethod
-	def query_default_order(cls):
-		return cls.query.order_by(cls.id)
 
 
 def parse_uuid(obj) -> uuid.UUID:
@@ -457,7 +457,7 @@ def parse_uuid(obj) -> uuid.UUID:
 	raise TypeError
 
 
-class UUID4Pkey():
+class UUID4Pkey(IDPKey):
 	"""Mixin for models with a UUID4 'id' as the primary key."""
 
 	id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -473,20 +473,6 @@ class UUID4Pkey():
 			if not value:
 				raise ValueError(f"No {cls} could be found from uuid {obj}")
 			return value
-
-	@classmethod
-	def _get_pkey_col(cls):
-		return cls.id
-
-	def __hash__(self):
-		return hash((self.__class__, self.id))
-
-	def __eq__(self, other):
-		return self.__class__ == other.__class__ and self.id == other.id
-
-	@classmethod
-	def query_default_order(cls):
-		return cls.query.order_by(cls.id)
 
 
 class AbbrPKey():

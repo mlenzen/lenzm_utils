@@ -28,6 +28,7 @@ setup(
 		'': ['README.rst', 'LICENSE'],
 		},
 	install_requires=[
+		'deprecation',
 		'setuptools',
 		],
 	extras_require={
