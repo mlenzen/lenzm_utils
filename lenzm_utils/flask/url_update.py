@@ -1,5 +1,5 @@
 """Tools to build a URL using the current URL as defaults."""
-from collections import Iterable
+from collections.abc import Iterable
 
 from flask import request, url_for
 from werkzeug.datastructures import MultiDict
