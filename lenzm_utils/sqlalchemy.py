@@ -1,11 +1,12 @@
 """Utils for working with SQLAlchemy."""
 import csv
 from contextlib import suppress
+from datetime import datetime
 from decimal import Decimal
 import fractions
 import logging
 import os.path
-from typing import Sequence
+from typing import Optional, Sequence
 import uuid
 
 from flask import abort
@@ -115,7 +116,7 @@ class Fraction(TypeDecorator):
 
 
 class UTCDateTime(TypeDecorator):
-	"""Type for storing and retrieving DateTimes as UTC.
+	"""Type for storing UTC Datetimes, rejecting time zone naive datetimes.
 
 	Naive datetimes are rejected.
 	The returned value is always a non-naive UTC datetime.
@@ -123,7 +124,11 @@ class UTCDateTime(TypeDecorator):
 
 	impl = DateTime
 
-	def process_bind_param(self, value, dialect):
+	def process_bind_param(
+			self,
+			value: Optional[datetime],
+			dialect,
+	) -> Optional[datetime]:
 		"""Fix inputs."""
 		if value is None:
 			return None
@@ -131,11 +136,19 @@ class UTCDateTime(TypeDecorator):
 			raise ValueError
 		return value.astimezone(pytz.utc)
 
-	def process_result_value(self, value, dialect):
+	def process_result_value(
+			self,
+			value: Optional[datetime],
+			dialect,
+	) -> Optional[datetime]:
 		"""Normalize output."""
 		if value is None:
 			return None
 		return value.replace(tzinfo=pytz.utc)
+
+	@staticmethod
+	def now():
+		return datetime.utcnow().replace(tzinfo=pytz.utc)
 
 
 class BaseMixin():
