@@ -26,7 +26,7 @@ of the passed object. You can also specify a mapping of how to
 generate the parameters from the object.
 
 @blueprint.route('/employee/<dept>/<employee_name>')
-@url_for_obj.register(models.Employee, {
+@url_for_obj.register(models.Employee, get_funcs={
 	'dept': lambda employee: employee.department.name,
 	'employee_name': lambda employee: employee.name,
 	})
